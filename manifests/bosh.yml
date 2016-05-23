@@ -6,7 +6,8 @@ releases:
   url: https://bosh.io/d/github.com/cloudfoundry/bosh?v=256.2
   sha1: ff2f4e16e02f66b31c595196052a809100cfd5a8
 - name: bosh-virtualbox-cpi
-  url: file://~/Downloads/bosh-virtualbox-cpi-release-0.0.1.tgz
+  url: https://bosh.io/d/github.com/cppforlife/bosh-virtualbox-cpi-release?v=0.0.1
+  sha1: 03450cd53bcf2ef00207da3b68f709981a3b3a7d
 
 resource_pools:
 - name: vms
@@ -26,16 +27,16 @@ networks:
 - name: private
   type: manual
   subnets:
-  - range: 192.168.50.0/24
+  - range:   192.168.50.0/24
     gateway: 192.168.50.1
-    dns: [192.168.50.1]
+    dns:     [192.168.50.1]
     cloud_properties:
       name: vboxnet0
 
-jobs:
+instance_groups:
 - name: bosh
   instances: 1
-  templates:
+  jobs:
   - {name: nats, release: bosh}
   - {name: postgres, release: bosh}
   - {name: blobstore, release: bosh}
