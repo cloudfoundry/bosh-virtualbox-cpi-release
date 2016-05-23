@@ -4,7 +4,7 @@ Set up a host-only VirtualBox network:
 
 1. Open VirtualBox
 1. Choose VirtualBox > Preferences > Network
-1. Create new network named `vboxnet0` (the default). Currently only this name works.
+1. Create new network named `vboxnet0`.
 1. DHCP Server (tab) -> Uncheck `Enable Server`
 
 Check that the `vboxnet0` network is configured on the host:

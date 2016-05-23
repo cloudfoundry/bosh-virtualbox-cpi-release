@@ -28,7 +28,3 @@ $ bosh deployment manifests/zookeeper.yml
 
 $ bosh deploy
 ```
-
-### Problems
-
-Pieces of `BoshVirtualBoxCpi::VirtualBox::Driver` class are based on Vagrant's VirtualBox driver.

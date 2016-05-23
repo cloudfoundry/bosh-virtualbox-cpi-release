@@ -1,0 +1,31 @@
+---
+packages:
+- name: bosh_virtualbox_cpi
+  version: 5ad42ac80d0ab0604b08988ab2c11971c1e19b00
+  fingerprint: 5ad42ac80d0ab0604b08988ab2c11971c1e19b00
+  sha1: 1de90024c32c9c0f1177027ec3957fe4eac551d2
+  dependencies:
+  - ruby_virtualbox_cpi
+- name: ruby_virtualbox_cpi
+  version: 275de40940f20e52180859ee637cb4dc8b2c97df
+  fingerprint: 275de40940f20e52180859ee637cb4dc8b2c97df
+  sha1: 298e68cb7ea463d967a5c21033ef1f18c3d1b0e9
+  dependencies: []
+- name: virtualbox_cpi_mkisofs
+  version: 34aaa856fa711dd8713bc6308647af69248cce73
+  fingerprint: 34aaa856fa711dd8713bc6308647af69248cce73
+  sha1: ca2c1ad0169bece6f45aa2a07f0023ca1a458ab9
+  dependencies: []
+jobs:
+- name: virtualbox_cpi
+  version: a4a65cd932022f15b1079609b5d47e8de277ac3b
+  fingerprint: a4a65cd932022f15b1079609b5d47e8de277ac3b
+  sha1: 4a18033b64abad8cf0c0ed188ffe994e01719ede
+license:
+  version: 0ca0ce5f566351180272e7a089f66dbbe58ac4d0
+  fingerprint: 0ca0ce5f566351180272e7a089f66dbbe58ac4d0
+  sha1: 92dfd2cb2a2d289bc4aa30deb0900c23bb7eced6
+commit_hash: daeed6ab
+uncommitted_changes: true
+name: bosh-virtualbox-cpi
+version: 0.0.1
