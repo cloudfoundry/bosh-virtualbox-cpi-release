@@ -1,0 +1,21 @@
+#!/usr/bin/env ruby
+$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
+
+require 'yaml'
+require 'ostruct'
+require 'bosh/cpi'
+require 'bosh_virtualbox_cpi'
+require 'bosh_virtualbox_cpi/cpi'
+
+cpi_config = YAML.load_file(ARGV.shift)
+cpi_log = StringIO.new
+
+module Bosh
+  module Clouds
+    Config = Struct.new(:uuid).new # todo remove
+  end
+end
+
+cli = Bosh::Cpi::Cli.new(lambda { BoshVirtualBoxCpi::Cpi.new(cpi_config) }, cpi_log, STDOUT)
+
+cli.run(ARGF.read)
