@@ -34,10 +34,10 @@ module BoshVirtualBoxCpi
       @stemcell_manager = Managers::Stemcell.new(stemcells_dir, runner, driver, @logger)
 
       vms_dir = ResolvedDir.new(@options.vms_dir, runner)
-      @vm_manager = Managers::Vm.new(@options.vms_dir, runner, driver, @logger)
+      @vm_manager = Managers::Vm.new(vms_dir, runner, driver, @logger)
 
       disks_dir = ResolvedDir.new(@options.disks_dir, runner)
-      @disk_manager = Managers::Disk.new(@options.disks_dir, runner, driver, @logger)
+      @disk_manager = Managers::Disk.new(disks_dir, runner, driver, @logger)
     end
 
     def create_stemcell(*args)
