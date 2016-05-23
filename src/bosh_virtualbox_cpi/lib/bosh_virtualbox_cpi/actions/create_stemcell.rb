@@ -52,8 +52,7 @@ module BoshVirtualBoxCpi::Actions
       stemcell_path = @stemcell_manager.path(stemcell_id)
       importer = @stemcell_manager.driver.vm_importer
       importer.import("#{stemcell_path}/image.ovf").tap do |vm|
-        @stemcell_manager.create_artifact(
-          stemcell_id, "vm-id", vm.uuid)
+        @stemcell_manager.create_artifact(stemcell_id, "vm-id", vm.uuid)
       end
     end
 

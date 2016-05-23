@@ -16,7 +16,7 @@ module BoshVirtualBoxCpi
     end
 
     def cloud_name
-      cloud["name"]
+      cloud["name"] || "vboxnet0"
     end
 
     def cloud_type

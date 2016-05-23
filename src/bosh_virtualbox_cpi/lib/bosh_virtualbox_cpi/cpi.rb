@@ -55,12 +55,13 @@ module BoshVirtualBoxCpi
         networks, disk_locality, env, @logger,
       ).run
 
-      disk_id = Actions::CreateDisk.new(@disk_manager, cloud_props["disk"], {}, nil, @logger).run
+      eph_disk_size = cloud_props.fetch("ephemeral_disk", 5_000)
+      eph_disk_id = Actions::CreateDisk.new(@disk_manager, eph_disk_size, {}, nil, @logger).run
 
       # create_vm CPI action *must* attach ephemeral disk
       # *before* powering on VM, otherwise, bosh_agent
       # will not properly bootstrap environment.
-      Actions::AttachDisk.new(@vm_manager, @disk_manager, vm_id, disk_id, "ephemeral", @logger).run
+      Actions::AttachDisk.new(@vm_manager, @disk_manager, vm_id, eph_disk_id, "ephemeral", @logger).run
 
       Actions::RebootVm.new(@vm_manager, vm_id, cloud_props, @logger).run
 

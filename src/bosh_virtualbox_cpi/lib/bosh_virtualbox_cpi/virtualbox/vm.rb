@@ -22,8 +22,7 @@ module BoshVirtualBoxCpi::Virtualbox
       )
 
       unless output =~ /VM ".+?" has been successfully started/
-        raise BoshVirtualBoxCpi::Virtualbox::Error, \
-          "Failed to start VM '#{@uuid}'"
+        raise BoshVirtualBoxCpi::Virtualbox::Error, "Failed to start VM '#{@uuid}'"
       end
     end
 
@@ -45,6 +44,18 @@ module BoshVirtualBoxCpi::Virtualbox
     def name=(name)
       @logger.debug("virtualbox.vm.#{__method__} name=#{name}")
       @driver.execute("modifyvm", @uuid, "--name", name)
+    end
+
+    def props=(props)
+      @logger.debug("virtualbox.vm.#{__method__} props=#{props.inspect}")
+      @driver.execute(
+        "modifyvm", @uuid,
+        "--memory", props.fetch("memory", 512).to_s,
+        "--cpus",   props.fetch("cpus", 1).to_s,
+
+        # Using minimal paravirtualization provider to avoid CPU lockups
+        "--paravirtprovider", props.fetch("paravirtprovider", "minimal").to_s,
+      )
     end
 
     def halt

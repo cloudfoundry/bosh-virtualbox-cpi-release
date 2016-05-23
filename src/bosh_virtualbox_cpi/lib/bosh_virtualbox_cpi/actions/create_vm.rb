@@ -33,6 +33,7 @@ module BoshVirtualBoxCpi::Actions
       check_stemcell
       vm = clone_vm
       set_name(vm)
+      set_props(vm)
       configure_network(vm)
       agent_env = build_agent_env(vm)
       mount_cdrom_with_agent_env(vm, agent_env)
@@ -60,6 +61,11 @@ module BoshVirtualBoxCpi::Actions
     def set_name(vm)
       @logger.info("Setting name for '#{vm.uuid}'")
       vm.name = "vm-#{vm.uuid}"
+    end
+
+    def set_props(vm)
+      @logger.info("Setting properties for '#{vm.uuid}'")
+      vm.props = @cloud_props
     end
 
     def configure_network(vm)

@@ -15,9 +15,9 @@ resource_pools:
   stemcell:
     url: file://~/Downloads/bosh-stemcell-3232.4-vsphere-esxi-ubuntu-trusty-go_agent.tgz
   cloud_properties:
-    cpu: 2
-    ram: 3072
-    disk: 16_384
+    cpus: 2
+    memory: 1024
+    ephemeral_disk: 16_384
 
 disk_pools:
 - name: disks
