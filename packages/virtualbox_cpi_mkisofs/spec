@@ -1,7 +1,0 @@
----
-name: virtualbox_cpi_mkisofs
-
-files:
-- virtualbox_cpi_mkisofs/cdrtools-3.00.tar.bz2
-- virtualbox_cpi_mkisofs/patch-include_schily_sha2.h
-- virtualbox_cpi_mkisofs/smake-1.2.4.tar.bz2

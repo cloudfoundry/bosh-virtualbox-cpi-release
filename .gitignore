@@ -6,8 +6,8 @@
 .idea
 .vagrant
 blobs
-**/config/dev.yml
-**/config/private.yml
+config/dev.yml
+config/private.yml
 dev_releases
 releases/*.tgz
 releases/**/*.tgz
@@ -21,3 +21,6 @@ Library
 
 src/bosh_virtualbox_cpi/vendor/cache/
 manifests/bosh-state.json
+
+/pkg
+/bin

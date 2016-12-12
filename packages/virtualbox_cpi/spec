@@ -1,0 +1,12 @@
+---
+name: virtualbox_cpi
+
+dependencies:
+- golang_1.7
+
+files:
+- "**/*.go"
+
+excluded_files:
+- github.com/onsi/ginkgo/**/*
+- github.com/onsi/gomega/**/*

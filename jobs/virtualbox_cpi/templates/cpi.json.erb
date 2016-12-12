@@ -1,19 +1,19 @@
 <%=
 
 params = {
-  "host" => p("host"),
-  "username" => p("username"),
-  "private_key" => p("private_key"),
+  "Host" => p("host"),
+  "Username" => p("username"),
+  "PrivateKey" => p("private_key"),
 
-  "bin_path" => p("bin_path"),
-  "store_dir" => p("store_dir"),
+  "BinPath" => p("bin_path"),
+  "StoreDir" => p("store_dir"),
 
-  "agent" => {
-    "ntp" => p("ntp")
+  "Agent" => {
+    "NTP" => p("ntp")
   }
 }
 
-agent_params = params["agent"]
+agent_params = params["Agent"]
 
 if_p("blobstore") do
   agent_params["blobstore"] = {

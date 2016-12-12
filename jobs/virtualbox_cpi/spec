@@ -6,19 +6,19 @@ templates:
   cpi.json.erb: config/cpi.json
 
 packages:
-- ruby_virtualbox_cpi
-- bosh_virtualbox_cpi
-- virtualbox_cpi_mkisofs
+- virtualbox_cpi
 
 properties:
   host:
-    description: Address where VirtualBox is running
-    default: 192.168.50.1
+    description: Address where VirtualBox is running. If not set, assumes that VirtualBox CLI is accessible.
+    example: 192.168.50.1
+    default: ""
   username:
     description: Username to use when SSH-ing into machine that's running VirtualBox
     default: ubuntu
   private_key:
     description: Private key to use when SSH-ing into machine that's running VirtualBox
+    default: ""
 
   bin_path:
     description: Path to VBoxManage binary on the SSH-ed machine
