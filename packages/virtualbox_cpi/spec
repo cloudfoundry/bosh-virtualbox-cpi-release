@@ -6,6 +6,7 @@ dependencies:
 
 files:
 - "**/*.go"
+- "**/*.s"
 
 excluded_files:
 - github.com/onsi/ginkgo/**/*

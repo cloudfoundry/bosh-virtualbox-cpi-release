@@ -7,6 +7,7 @@ type ExecuteOpts struct {
 type Driver interface {
 	Execute(args ...string) (string, error)
 	ExecuteComplex(args []string, opts ExecuteOpts) (string, error)
+	IsMissingVMErr(output string) bool
 }
 
 var _ Driver = ExecDriver{}
@@ -19,3 +20,13 @@ type Runner interface {
 }
 
 var _ Runner = LocalRunner{}
+var _ Runner = &SSHRunner{}
+var _ Runner = &ExpandingPathRunner{}
+
+type RawRunner interface {
+	HomeDir() (string, error)
+	Runner
+}
+
+var _ RawRunner = LocalRunner{}
+var _ RawRunner = &SSHRunner{}

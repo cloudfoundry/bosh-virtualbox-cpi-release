@@ -2,7 +2,6 @@ package vm
 
 import (
 	"regexp"
-	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 
@@ -18,7 +17,7 @@ var (
 func (vm VMImpl) Exists() (bool, error) {
 	output, err := vm.driver.Execute("showvminfo", vm.id, "--machinereadable")
 	if err != nil {
-		if strings.Contains(output, "Could not find a registered machine with UUID") {
+		if vm.driver.IsMissingVMErr(output) {
 			return false, nil
 		}
 		return false, err

@@ -1,8 +1,6 @@
 package stemcell
 
 import (
-	"strings"
-
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
@@ -45,7 +43,7 @@ func (s StemcellImpl) Prepare() error {
 func (s StemcellImpl) Exists() (bool, error) {
 	output, err := s.driver.Execute("showvminfo", s.id, "--machinereadable")
 	if err != nil {
-		if strings.Contains(output, "Could not find a registered machine with UUID") {
+		if s.driver.IsMissingVMErr(output) {
 			return false, nil
 		}
 		return false, err
@@ -55,9 +53,11 @@ func (s StemcellImpl) Exists() (bool, error) {
 }
 
 func (s StemcellImpl) Delete() error {
-	_, err := s.driver.Execute("unregistervm", s.id, "--delete")
+	output, err := s.driver.Execute("unregistervm", s.id, "--delete")
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Unregistering stemcell VM")
+		if !s.driver.IsMissingVMErr(output) {
+			return bosherr.WrapErrorf(err, "Unregistering stemcell VM")
+		}
 	}
 
 	_, _, err = s.runner.Execute("rm", "-rf", s.path)

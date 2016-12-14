@@ -126,9 +126,11 @@ func (f Factory) upload(imagePath, stemcellPath string) error {
 		return bosherr.WrapError(err, "Creating stemcell parent")
 	}
 
-	err = f.runner.Upload(tmpDir, stemcellPath)
-	if err != nil {
-		return bosherr.WrapErrorf(err, "Uploading stemcell")
+	for _, fileName := range []string{"image-disk1.vmdk", "image.mf", "image.ovf"} {
+		err := f.runner.Upload(filepath.Join(tmpDir, fileName), filepath.Join(stemcellPath, fileName))
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Uploading stemcell")
+		}
 	}
 
 	return nil

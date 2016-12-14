@@ -24,14 +24,6 @@ func NewConfigFromPath(path string, fs boshsys.FileSystem) (Config, error) {
 		return config, bosherr.WrapError(err, "Unmarshalling config")
 	}
 
-	// todo expansion isnt proper for remote machines
-	if len(config.StoreDir) > 0 {
-		config.StoreDir, err = fs.ExpandPath(config.StoreDir)
-		if err != nil {
-			return config, bosherr.WrapError(err, "Expanding StoreDir")
-		}
-	}
-
 	err = action.ConcreteFactoryOptions(config).Validate()
 	if err != nil {
 		return config, bosherr.WrapError(err, "Validating configuration")

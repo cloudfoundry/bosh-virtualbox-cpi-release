@@ -58,8 +58,9 @@ func (d ExecDriver) ExecuteComplex(args []string, opts ExecuteOpts) (string, err
 	}
 
 	err := d.retrier.Retry(execFunc)
+	output = strings.Replace(output, "\r\n", "\n", -1)
 	if err != nil {
-		return "", err
+		return output, err
 	}
 
 	var errored bool
@@ -69,7 +70,7 @@ func (d ExecDriver) ExecuteComplex(args []string, opts ExecuteOpts) (string, err
 			// This exit code happens if VBoxManage is on the PATH,
 			// but another executable it tries to execute is missing.
 			// This is usually indicative of a corrupted VirtualBox install.
-			return "", bosherr.Errorf("Most likely corrupted VirtualBox installation")
+			return output, bosherr.Errorf("Most likely corrupted VirtualBox installation")
 		} else {
 			errored = !opts.IgnoreNonZeroExitStatus
 		}
@@ -78,7 +79,7 @@ func (d ExecDriver) ExecuteComplex(args []string, opts ExecuteOpts) (string, err
 		if execDriverDevCtlErr.MatchString(output) {
 			// This catches an error message that only shows when kernel
 			// drivers aren't properly installed.
-			return "", bosherr.Errorf("Error message about vboxnetctl")
+			return output, bosherr.Errorf("Error message about vboxnetctl")
 		}
 
 		if execDriverGenericErr.MatchString(output) {
@@ -88,8 +89,12 @@ func (d ExecDriver) ExecuteComplex(args []string, opts ExecuteOpts) (string, err
 	}
 
 	if errored {
-		return "", bosherr.Errorf("Error executing command:\nCommand: '%v'\nExit code: %d\nOutput: '%s'", args, status, output)
+		return output, bosherr.Errorf("Error executing command:\nCommand: '%v'\nExit code: %d\nOutput: '%s'", args, status, output)
 	}
 
-	return strings.Replace(output, "\r\n", "\n", -1), nil
+	return output, nil
+}
+
+func (d ExecDriver) IsMissingVMErr(output string) bool {
+	return strings.Contains(output, "Could not find a registered machine with UUID")
 }

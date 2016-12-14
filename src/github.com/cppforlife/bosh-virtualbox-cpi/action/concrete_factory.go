@@ -26,7 +26,18 @@ func NewConcreteFactory(
 	logger boshlog.Logger,
 ) concreteFactory {
 	retrier := driver.RetrierImpl{}
-	runner := driver.NewLocalRunner(fs, cmdRunner)
+	rawRunner := driver.RawRunner(driver.NewLocalRunner(fs, cmdRunner, logger))
+
+	if len(options.Host) > 0 {
+		runnerOpts := driver.SSHRunnerOpts{
+			Host:       options.Host,
+			Username:   options.Username,
+			PrivateKey: options.PrivateKey,
+		}
+		rawRunner = driver.NewSSHRunner(runnerOpts, fs, logger)
+	}
+
+	runner := driver.NewExpandingPathRunner(rawRunner)
 	driver := driver.NewExecDriver(runner, retrier, options.BinPath, logger)
 	stemcells := bstem.NewFactory(options.StemcellsDir(), driver, runner, retrier, fs, uuidGen, compressor, logger)
 	disks := bdisk.NewFactory(options.DisksDir(), uuidGen, driver, runner, logger)

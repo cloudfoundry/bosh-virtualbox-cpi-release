@@ -1,13 +1,13 @@
 package crypto
 
 import (
-	"fmt"
-	"strings"
-	"hash"
 	"crypto/sha1"
 	"crypto/sha256"
 	"crypto/sha512"
 	"errors"
+	"fmt"
+	"hash"
+	"strings"
 )
 
 const (
@@ -48,17 +48,15 @@ func ParseDigestString(digest string) (Digest, error) {
 	default:
 		return nil, errors.New(fmt.Sprintf("Unrecognized digest algorithm: %s. Supported algorithms: sha1, sha256, sha512", pieces[0]))
 	}
-
-	return nil, errors.New(fmt.Sprintf("Parsing digest: %s", digest))
 }
 
-func PreferredDigest(m multipleDigestImpl) (Digest, error) {
-	if len(m.digests) == 0 {
+func PreferredDigest(m MultipleDigest) (Digest, error) {
+	if len(m.Digests()) == 0 {
 		return NewDigest(DigestAlgorithmSHA1, ""), errors.New("No valid digests available")
 	}
 
-	currentStrongest := m.digests[0]
-	for _, candidateDigest := range m.digests {
+	currentStrongest := m.Digests()[0]
+	for _, candidateDigest := range m.Digests() {
 		if candidateDigest.Compare(currentStrongest) > 0 {
 			currentStrongest = candidateDigest
 		}
@@ -67,7 +65,7 @@ func PreferredDigest(m multipleDigestImpl) (Digest, error) {
 	return currentStrongest, nil
 }
 
-func ParseMultipleDigestString(multipleDigest string) (multipleDigestImpl, error) {
+func ParseMultipleDigestString(multipleDigest string) (MultipleDigestImpl, error) {
 	pieces := strings.Split(multipleDigest, ";")
 
 	digests := []Digest{}
