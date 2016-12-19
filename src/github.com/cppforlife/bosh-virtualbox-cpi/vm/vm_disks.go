@@ -84,8 +84,13 @@ func (vm VMImpl) DetachDisk(disk bdisk.Disk) error {
 		return err
 	}
 
+	pd, err := PortDevices{vm.driver, vm}.Find(rec.Port, rec.Device)
+	if err != nil {
+		return err
+	}
+
 	// Actually detach the disk
-	err = vm.hotPlug(PortDevices{vm.driver, vm}.Find(rec.Port, rec.Device).Detach)
+	err = vm.hotPlug(pd.Detach)
 	if err != nil {
 		return err
 	}
@@ -123,7 +128,12 @@ func (vm VMImpl) detachPersistentDisks() error {
 			continue
 		}
 
-		err = PortDevices{vm.driver, vm}.Find(rec.Port, rec.Device).Detach()
+		pd, err := PortDevices{vm.driver, vm}.Find(rec.Port, rec.Device)
+		if err != nil {
+			return err
+		}
+
+		err = pd.Detach()
 		if err != nil {
 			return err
 		}
