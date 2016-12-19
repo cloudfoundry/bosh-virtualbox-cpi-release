@@ -25,7 +25,7 @@ type Retrier interface {
 type RetrierImpl struct{}
 
 func (r RetrierImpl) Retry(actionFunc func() error) error {
-	return r.RetryComplex(actionFunc, 10, 5*time.Second)
+	return r.RetryComplex(actionFunc, 30, 2*time.Second)
 }
 
 func (RetrierImpl) RetryComplex(actionFunc func() error, times int, sleep time.Duration) error {
