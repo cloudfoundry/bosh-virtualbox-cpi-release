@@ -28,7 +28,7 @@ func (cp VMCloudProperties) AsVMProps() bvm.VMProps {
 		EphemeralDisk: 5000,
 
 		GUI:              cp.GUI,
-		ParavirtProvider: "minimal",
+		ParavirtProvider: "minimal", // KVM caused CPU lockups with 4+ kernel
 	}
 	if cp.Memory > 0 {
 		props.Memory = cp.Memory

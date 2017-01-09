@@ -96,5 +96,6 @@ func (d ExecDriver) ExecuteComplex(args []string, opts ExecuteOpts) (string, err
 }
 
 func (d ExecDriver) IsMissingVMErr(output string) bool {
-	return strings.Contains(output, "Could not find a registered machine with UUID")
+	// todo better check for VBOX_E_OBJECT_NOT_FOUND?
+	return strings.Contains(output, "Could not find a registered machine")
 }

@@ -77,6 +77,9 @@ func (vm VMImpl) IsRunning() (bool, error) {
 func (vm VMImpl) State() (string, error) {
 	output, err := vm.driver.Execute("showvminfo", vm.id, "--machinereadable")
 	if err != nil {
+		if vm.driver.IsMissingVMErr(output) {
+			return "missing", nil
+		}
 		return "", err
 	}
 
