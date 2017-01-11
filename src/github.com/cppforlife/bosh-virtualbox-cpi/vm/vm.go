@@ -8,11 +8,13 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
 	"github.com/cppforlife/bosh-virtualbox-cpi/driver"
+	bpds "github.com/cppforlife/bosh-virtualbox-cpi/vm/portdevices"
 )
 
 type VMImpl struct {
-	id    string
-	store Store
+	id          string
+	portDevices bpds.PortDevices
+	store       Store
 
 	driver driver.Driver
 	logger boshlog.Logger
@@ -20,15 +22,17 @@ type VMImpl struct {
 
 func NewVMImpl(
 	id string,
+	portDevices bpds.PortDevices,
 	store Store,
 	driver driver.Driver,
 	logger boshlog.Logger,
 ) VMImpl {
 	return VMImpl{
-		id:     id,
-		store:  store,
-		driver: driver,
-		logger: logger,
+		id:          id,
+		portDevices: portDevices,
+		store:       store,
+		driver:      driver,
+		logger:      logger,
 	}
 }
 

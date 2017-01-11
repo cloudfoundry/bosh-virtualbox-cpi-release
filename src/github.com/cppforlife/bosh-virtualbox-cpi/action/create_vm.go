@@ -48,10 +48,7 @@ func (cp VMCloudProperties) AsVMProps() bvm.VMProps {
 type Environment map[string]interface{}
 
 func NewCreateVM(stemcellFinder bstem.Finder, vmCreator bvm.Creator) CreateVM {
-	return CreateVM{
-		stemcellFinder: stemcellFinder,
-		vmCreator:      vmCreator,
-	}
+	return CreateVM{stemcellFinder, vmCreator}
 }
 
 func (a CreateVM) Run(agentID string, stemcellCID StemcellCID, cloudProps VMCloudProperties, networks Networks, _ []DiskCID, env Environment) (VMCID, error) {

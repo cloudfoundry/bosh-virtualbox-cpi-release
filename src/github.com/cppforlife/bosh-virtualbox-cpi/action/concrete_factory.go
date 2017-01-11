@@ -47,7 +47,13 @@ func NewConcreteFactory(
 
 	stemcells := bstem.NewFactory(stemcellsOpts, driver, runner, retrier, fs, uuidGen, compressor, logger)
 	disks := bdisk.NewFactory(options.DisksDir(), uuidGen, driver, runner, logger)
-	vms := bvm.NewFactory(options.VMsDir(), uuidGen, driver, runner, disks, options.Agent, logger)
+
+	vmsOpts := bvm.FactoryOpts{
+		DirPath:           options.VMsDir(),
+		StorageController: options.StorageController,
+	}
+
+	vms := bvm.NewFactory(vmsOpts, uuidGen, driver, runner, disks, options.Agent, logger)
 
 	return concreteFactory{
 		availableActions: map[string]Action{

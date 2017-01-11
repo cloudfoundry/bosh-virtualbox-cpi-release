@@ -15,6 +15,7 @@ import (
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 
 	"github.com/cppforlife/bosh-virtualbox-cpi/driver"
+	bpds "github.com/cppforlife/bosh-virtualbox-cpi/vm/portdevices"
 )
 
 var (
@@ -133,7 +134,7 @@ func (f Factory) upload(imagePath, stemcellPath string) error {
 	}
 
 	switch f.opts.StorageController {
-	case "ide":
+	case bpds.IDEController:
 		err = f.switchRootDiskToIDEController(tmpDir)
 		if err != nil {
 			return bosherr.WrapError(err, "Switching root disk to IDE Controller")

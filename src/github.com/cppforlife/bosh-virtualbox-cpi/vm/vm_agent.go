@@ -61,7 +61,12 @@ func (vm VMImpl) reconfigureAgent(hotPlug bool, agentEnvFunc func(AgentEnv) Agen
 	}
 
 	updateFunc := func() error {
-		return CDROM{vm.driver, vm.store.Path("env.iso")}.Mount(vm)
+		cd, err := vm.portDevices.CDROM()
+		if err != nil {
+			return err
+		}
+
+		return cd.Mount(vm.store.Path("env.iso"))
 	}
 
 	return vm.hotPlugIfNecessary(hotPlug, updateFunc)

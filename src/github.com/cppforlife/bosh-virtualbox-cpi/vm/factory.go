@@ -10,10 +10,16 @@ import (
 	bdisk "github.com/cppforlife/bosh-virtualbox-cpi/disk"
 	"github.com/cppforlife/bosh-virtualbox-cpi/driver"
 	bstem "github.com/cppforlife/bosh-virtualbox-cpi/stemcell"
+	bpds "github.com/cppforlife/bosh-virtualbox-cpi/vm/portdevices"
 )
 
+type FactoryOpts struct {
+	DirPath           string
+	StorageController string
+}
+
 type Factory struct {
-	dirPath string
+	opts    FactoryOpts
 	uuidGen boshuuid.Generator
 
 	driver      driver.Driver
@@ -27,7 +33,7 @@ type Factory struct {
 }
 
 func NewFactory(
-	dirPath string,
+	opts FactoryOpts,
 	uuidGen boshuuid.Generator,
 	driver driver.Driver,
 	runner driver.Runner,
@@ -36,7 +42,7 @@ func NewFactory(
 	logger boshlog.Logger,
 ) Factory {
 	return Factory{
-		dirPath: dirPath,
+		opts:    opts,
 		uuidGen: uuidGen,
 
 		driver:      driver,
@@ -105,8 +111,10 @@ func (f Factory) cleanUpPartialCreate(vm VM) {
 }
 
 func (f Factory) newVM(id string) VMImpl {
-	store := NewStore(filepath.Join(f.dirPath, id), f.runner)
-	return NewVMImpl(id, store, f.driver, f.logger)
+	pdsOpts := bpds.PortDevicesOpts{Controller: f.opts.StorageController}
+	portDevices := bpds.NewPortDevices(id, pdsOpts, f.driver, f.logger)
+	store := NewStore(filepath.Join(f.opts.DirPath, id), f.runner)
+	return NewVMImpl(id, portDevices, store, f.driver, f.logger)
 }
 
 func (f Factory) Find(id string) (VM, error) {

@@ -6,6 +6,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 
 	bvm "github.com/cppforlife/bosh-virtualbox-cpi/vm"
+	bpds "github.com/cppforlife/bosh-virtualbox-cpi/vm/portdevices"
 )
 
 type ConcreteFactoryOptions struct {
@@ -41,7 +42,7 @@ func (o ConcreteFactoryOptions) Validate() error {
 	}
 
 	switch o.StorageController {
-	case "ide", "scsi":
+	case bpds.IDEController, bpds.SCSIController:
 		// valid
 	default:
 		return bosherr.Error("Unexpected StorageController")

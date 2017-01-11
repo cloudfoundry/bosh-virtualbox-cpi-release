@@ -47,11 +47,11 @@ type NetworkSpec struct {
 
 type DisksSpec struct {
 	System     string         `json:"system"`
-	Ephemeral  string         `json:"ephemeral"`
+	Ephemeral  interface{}    `json:"ephemeral"`
 	Persistent PersistentSpec `json:"persistent"`
 }
 
-type PersistentSpec map[string]string
+type PersistentSpec map[string]interface{}
 
 type EnvSpec map[string]interface{}
 
@@ -116,12 +116,12 @@ func NewAgentEnvForVM(agentID, vmCID string, networks Networks, env Environment,
 	return agentEnv
 }
 
-func (ae AgentEnv) AttachEphemeralDisk(path string) AgentEnv {
-	ae.Disks.Ephemeral = path
+func (ae AgentEnv) AttachEphemeralDisk(hint interface{}) AgentEnv {
+	ae.Disks.Ephemeral = hint
 	return ae
 }
 
-func (ae AgentEnv) AttachPersistentDisk(diskID, path string) AgentEnv {
+func (ae AgentEnv) AttachPersistentDisk(diskID string, hint interface{}) AgentEnv {
 	spec := PersistentSpec{}
 
 	if ae.Disks.Persistent != nil {
@@ -130,7 +130,7 @@ func (ae AgentEnv) AttachPersistentDisk(diskID, path string) AgentEnv {
 		}
 	}
 
-	spec[diskID] = path
+	spec[diskID] = hint
 
 	ae.Disks.Persistent = spec
 

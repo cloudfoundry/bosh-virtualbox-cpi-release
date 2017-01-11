@@ -38,7 +38,7 @@ func (vm VMImpl) AttachEphemeralDisk(disk bdisk.Disk) error {
 }
 
 func (vm VMImpl) attachDisk(disk bdisk.Disk, ephemeral bool) error {
-	pd, err := PortDevices{vm.driver, vm}.FindAvailable()
+	pd, err := vm.portDevices.FindAvailable()
 	if err != nil {
 		return err
 	}
@@ -53,8 +53,9 @@ func (vm VMImpl) attachDisk(disk bdisk.Disk, ephemeral bool) error {
 		ID:        disk.ID(),
 		Ephemeral: ephemeral,
 
-		Port:   pd.port,
-		Device: pd.device,
+		Controller: pd.Controller(),
+		Port:       pd.Port(),
+		Device:     pd.Device(),
 	}
 
 	err = diskAttachmentRecords{vm.store}.Save(disk.ID(), rec)
@@ -64,9 +65,9 @@ func (vm VMImpl) attachDisk(disk bdisk.Disk, ephemeral bool) error {
 
 	agentUpdateFunc := func(agentEnv AgentEnv) AgentEnv {
 		if ephemeral {
-			return agentEnv.AttachEphemeralDisk(pd.port)
+			return agentEnv.AttachEphemeralDisk(pd.Hint())
 		} else {
-			return agentEnv.AttachPersistentDisk(disk.ID(), pd.port)
+			return agentEnv.AttachPersistentDisk(disk.ID(), pd.Hint())
 		}
 	}
 
@@ -84,7 +85,7 @@ func (vm VMImpl) DetachDisk(disk bdisk.Disk) error {
 		return err
 	}
 
-	pd, err := PortDevices{vm.driver, vm}.Find(rec.Port, rec.Device)
+	pd, err := vm.portDevices.Find(rec.Controller, rec.Port, rec.Device)
 	if err != nil {
 		return err
 	}
@@ -128,7 +129,7 @@ func (vm VMImpl) detachPersistentDisks() error {
 			continue
 		}
 
-		pd, err := PortDevices{vm.driver, vm}.Find(rec.Port, rec.Device)
+		pd, err := vm.portDevices.Find(rec.Controller, rec.Port, rec.Device)
 		if err != nil {
 			return err
 		}
@@ -151,8 +152,9 @@ type diskAttachmentRecord struct {
 	ID        string
 	Ephemeral bool
 
-	Port   string
-	Device string
+	Controller string // e.g. scsi, ide
+	Port       string // e.g. "0"
+	Device     string // e.g. "1"
 }
 
 type diskAttachmentRecords struct {
