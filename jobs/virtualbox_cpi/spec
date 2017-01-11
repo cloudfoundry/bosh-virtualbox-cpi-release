@@ -27,6 +27,10 @@ properties:
     description: Directory path to use to store stemcells, disks, and VMs managed by VirtualBox ('~' will be expanded)
     default: "~/.bosh_virtualbox_cpi"
 
+  storage_controller:
+    description: "For some reason IDE controller seems to be more reliable. Available: scsi or ide."
+    default: ide
+
   ntp:
     description: List of ntp server IPs. pool.ntp.org attempts to return IPs closest to your location, but you can still specify if needed.
     default:

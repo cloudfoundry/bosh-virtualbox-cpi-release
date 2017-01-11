@@ -9,25 +9,19 @@ import (
 )
 
 type ConcreteFactoryOptions struct {
-	BinPath  string
-	StoreDir string
-
 	Host       string
 	Username   string
 	PrivateKey string
+
+	BinPath  string
+	StoreDir string
+
+	StorageController string
 
 	Agent bvm.AgentOptions
 }
 
 func (o ConcreteFactoryOptions) Validate() error {
-	if o.BinPath == "" {
-		return bosherr.Error("Must provide non-empty BinPath")
-	}
-
-	if o.StoreDir == "" {
-		return bosherr.Error("Must provide non-empty StoreDir")
-	}
-
 	if len(o.Host) > 0 {
 		if o.Username == "" {
 			return bosherr.Error("Must provide non-empty Username")
@@ -36,6 +30,21 @@ func (o ConcreteFactoryOptions) Validate() error {
 		if o.PrivateKey == "" {
 			return bosherr.Error("Must provide non-empty PrivateKey")
 		}
+	}
+
+	if o.BinPath == "" {
+		return bosherr.Error("Must provide non-empty BinPath")
+	}
+
+	if o.StoreDir == "" {
+		return bosherr.Error("Must provide non-empty StoreDir")
+	}
+
+	switch o.StorageController {
+	case "ide", "scsi":
+		// valid
+	default:
+		return bosherr.Error("Unexpected StorageController")
 	}
 
 	err := o.Agent.Validate()

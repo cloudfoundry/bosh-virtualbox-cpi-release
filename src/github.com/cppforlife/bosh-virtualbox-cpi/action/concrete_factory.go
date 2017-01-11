@@ -39,7 +39,13 @@ func NewConcreteFactory(
 
 	runner := driver.NewExpandingPathRunner(rawRunner)
 	driver := driver.NewExecDriver(runner, retrier, options.BinPath, logger)
-	stemcells := bstem.NewFactory(options.StemcellsDir(), driver, runner, retrier, fs, uuidGen, compressor, logger)
+
+	stemcellsOpts := bstem.FactoryOpts{
+		DirPath:           options.StemcellsDir(),
+		StorageController: options.StorageController,
+	}
+
+	stemcells := bstem.NewFactory(stemcellsOpts, driver, runner, retrier, fs, uuidGen, compressor, logger)
 	disks := bdisk.NewFactory(options.DisksDir(), uuidGen, driver, runner, logger)
 	vms := bvm.NewFactory(options.VMsDir(), uuidGen, driver, runner, disks, options.Agent, logger)
 

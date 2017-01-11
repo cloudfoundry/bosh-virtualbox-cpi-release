@@ -1,6 +1,7 @@
 package stemcell
 
 import (
+	"crypto/sha1"
 	"fmt"
 	"path/filepath"
 	"regexp"
@@ -20,8 +21,13 @@ var (
 	stemcellSuggestedName = regexp.MustCompile(`Suggested VM name "(.+?)"`)
 )
 
+type FactoryOpts struct {
+	DirPath           string
+	StorageController string // todo expose per stemcell
+}
+
 type Factory struct {
-	dirPath string
+	opts FactoryOpts
 
 	driver  driver.Driver
 	runner  driver.Runner
@@ -36,7 +42,7 @@ type Factory struct {
 }
 
 func NewFactory(
-	dirPath string,
+	opts FactoryOpts,
 	driver driver.Driver,
 	runner driver.Runner,
 	retrier driver.Retrier,
@@ -46,7 +52,7 @@ func NewFactory(
 	logger boshlog.Logger,
 ) Factory {
 	return Factory{
-		dirPath: dirPath,
+		opts: opts,
 
 		driver:  driver,
 		runner:  runner,
@@ -69,7 +75,7 @@ func (f Factory) ImportFromPath(imagePath string) (Stemcell, error) {
 
 	id = "sc-" + id
 
-	stemcellPath := filepath.Join(f.dirPath, id)
+	stemcellPath := filepath.Join(f.opts.DirPath, id)
 
 	err = f.upload(imagePath, stemcellPath)
 	if err != nil {
@@ -105,7 +111,7 @@ func (f Factory) Find(id string) (Stemcell, error) {
 }
 
 func (f Factory) newStemcell(id string) StemcellImpl {
-	return NewStemcellImpl(id, filepath.Join(f.dirPath, id), f.driver, f.runner, f.logger)
+	return NewStemcellImpl(id, filepath.Join(f.opts.DirPath, id), f.driver, f.runner, f.logger)
 }
 
 func (f Factory) upload(imagePath, stemcellPath string) error {
@@ -126,10 +132,65 @@ func (f Factory) upload(imagePath, stemcellPath string) error {
 		return bosherr.WrapError(err, "Creating stemcell parent")
 	}
 
+	switch f.opts.StorageController {
+	case "ide":
+		err = f.switchRootDiskToIDEController(tmpDir)
+		if err != nil {
+			return bosherr.WrapError(err, "Switching root disk to IDE Controller")
+		}
+	default: // scsi
+		// do nothing
+	}
+
 	for _, fileName := range []string{"image-disk1.vmdk", "image.mf", "image.ovf"} {
 		err := f.runner.Upload(filepath.Join(tmpDir, fileName), filepath.Join(stemcellPath, fileName))
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Uploading stemcell")
+		}
+	}
+
+	return nil
+}
+
+func (f Factory) switchRootDiskToIDEController(tmpDir string) error {
+	var beforeSHA1, afterSHA1 string
+
+	{
+		ovfPath := filepath.Join(tmpDir, "image.ovf")
+
+		contents, err := f.fs.ReadFileString(ovfPath)
+		if err != nil {
+			return err
+		}
+
+		beforeSHA1 = fmt.Sprintf("%x", sha1.Sum([]byte(contents)))
+
+		// http://blogs.vmware.com/vapp/2009/11/virtual-hardware-in-ovf-part-1.html
+		// Parent=x references Item with InstanceID=x
+		contents = strings.Replace(
+			contents, "<rasd:Parent>3</rasd:Parent>", "<rasd:Parent>4</rasd:Parent>", 1)
+
+		afterSHA1 = fmt.Sprintf("%x", sha1.Sum([]byte(contents)))
+
+		err = f.fs.WriteFileString(ovfPath, contents)
+		if err != nil {
+			return err
+		}
+	}
+
+	{
+		mfPath := filepath.Join(tmpDir, "image.mf")
+
+		mfContents, err := f.fs.ReadFileString(mfPath)
+		if err != nil {
+			return err
+		}
+
+		mfContents = strings.Replace(mfContents, beforeSHA1, afterSHA1, 1)
+
+		err = f.fs.WriteFileString(mfPath, mfContents)
+		if err != nil {
+			return err
 		}
 	}
 
