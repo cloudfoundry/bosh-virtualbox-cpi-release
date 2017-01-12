@@ -1,9 +1,6 @@
 ## Configuring network in 'NAT Network' mode (not 'NAT' mode) for internet access
 
-NAT Network set up allows multiple VMs to be on the same network and
-access network outside of the host (i.e. internet).
-This is an experimental feature available in VirtualBox 4.3.0+
-[documentation](http://www.virtualbox.org/manual/ch06.html#network_nat_service).
+NAT Network set up allows multiple VMs to be on the same network and access network outside of the host (i.e. internet). This feature is available in VirtualBox 4.3.0+ [documentation](http://www.virtualbox.org/manual/ch06.html#network_nat_service).
 
 Set up a 'NAT Network' VirtualBox network:
 
@@ -12,9 +9,21 @@ Set up a 'NAT Network' VirtualBox network:
 1. (Choose NAT Networks tab)
 1. Create new network named `NatNetwork` (the default).
 1. Check `Enable Network`
-1. Uncheck `Supports DHCP`
+1. Check `Supports DHCP`
 
 ### Example network configuration for BOSH manifest
+
+```
+networks:
+- name: outbound
+  type: dynamic
+  dns: ["8.8.8.8"]           # use public DNS
+  cloud_properties:
+    name: mynatnet           # Network Name from configuration dialog
+    type: natnetwork
+```
+
+### Example network configuration for BOSH manifest (Advanced manual mode)
 
 ```
 networks:

@@ -1,16 +1,10 @@
 ## Configuring network in 'NAT' mode (not 'NAT Network' mode) for internet access
 
-NAT set up allows individual VM to access network
-outside of the host (i.e. internet). It does not allow VMs
-under this type of network to communicate with each other.
-
-No additional VirtualBox configuration is required.
-
+NAT set up allows individual VM to access network outside of the host (i.e. internet). It does not allow VMs under this type of network to communicate with each other. No additional VirtualBox configuration is required.
 
 ### Example network configuration for BOSH manifest
 
-Range (CIDR) for this type of network is picked in a very
-specific way due to certain VirtualBox constraints:
+Range (CIDR) for this type of network is picked in a very specific way due to certain VirtualBox constraints:
 
 - 1st network for VM: 10.0.2.0/24
 - 2nd network for VM: 10.0.3.0/24
@@ -28,7 +22,6 @@ networks:
     cloud_properties:
       type: nat
 ```
-
 
 ### Resources
 
