@@ -10,6 +10,7 @@ Set up a host-only VirtualBox network:
 Check that the `vboxnet0` network is configured on the host:
 
 ```
+$ VBoxManage list hostonlyifs
 $ ifconfig
 
 _...other entries..._

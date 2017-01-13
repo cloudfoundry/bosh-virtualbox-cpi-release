@@ -4,6 +4,15 @@ NAT Network set up allows multiple VMs to be on the same network and access netw
 
 Set up a 'NAT Network' VirtualBox network:
 
+On command line:
+
+```
+$ VBoxManage natnetwork add --netname NatNetwork --network 10.0.2.0/24 --dhcp on
+$ VBoxManage list natnetworks
+```
+
+Or via VirtualBox UI:
+
 1. Open VirtualBox
 1. Choose VirtualBox > Preferences > Network
 1. (Choose NAT Networks tab)
