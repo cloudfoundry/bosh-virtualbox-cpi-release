@@ -17,7 +17,8 @@ type ConcreteFactoryOptions struct {
 	BinPath  string
 	StoreDir string
 
-	StorageController string
+	StorageController  string
+	AutoEnableNetworks bool
 
 	Agent bvm.AgentOptions
 }

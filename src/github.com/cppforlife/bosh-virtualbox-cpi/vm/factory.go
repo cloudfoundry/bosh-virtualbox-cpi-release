@@ -10,12 +10,14 @@ import (
 	bdisk "github.com/cppforlife/bosh-virtualbox-cpi/disk"
 	"github.com/cppforlife/bosh-virtualbox-cpi/driver"
 	bstem "github.com/cppforlife/bosh-virtualbox-cpi/stemcell"
+	bnet "github.com/cppforlife/bosh-virtualbox-cpi/vm/network"
 	bpds "github.com/cppforlife/bosh-virtualbox-cpi/vm/portdevices"
 )
 
 type FactoryOpts struct {
-	DirPath           string
-	StorageController string
+	DirPath            string
+	StorageController  string
+	AutoEnableNetworks bool
 }
 
 type Factory struct {
@@ -57,6 +59,13 @@ func NewFactory(
 }
 
 func (f Factory) Create(agentID string, stemcell bstem.Stemcell, props VMProps, networks Networks, env Environment) (VM, error) {
+	if f.opts.AutoEnableNetworks {
+		err := Host{bnet.NewNetworks(f.driver, f.logger)}.EnableNetworks(networks)
+		if err != nil {
+			return nil, bosherr.WrapError(err, "Enabling networks")
+		}
+	}
+
 	vm, err := f.newClonedVM(stemcell)
 	if err != nil {
 		return nil, err

@@ -9,6 +9,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 
 	"github.com/cppforlife/bosh-virtualbox-cpi/driver"
+	bnet "github.com/cppforlife/bosh-virtualbox-cpi/vm/network"
 )
 
 const (
@@ -18,7 +19,7 @@ const (
 
 type NICs struct {
 	driver driver.Driver
-	vm     VM
+	vmID   string
 }
 
 func (n NICs) Configure(nets Networks) (Networks, error) {
@@ -49,14 +50,14 @@ func (n NICs) addNIC(nic string, net Network) (string, error) {
 	// https://www.virtualbox.org/ticket/6176
 	// `VBoxManage setextradata VM_NAME "VBoxInternal/Devices/pcnet/0/LUN#0/Config/Network" "172.23.24/24"`
 	// `VBoxManage setextradata VM_NAME "VBoxInternal/Devices/pcnet/0/LUN#0/Config/DNSProxy" 1`
-	args := []string{"modifyvm", n.vm.ID(), "--nic" + nic}
+	args := []string{"modifyvm", n.vmID, "--nic" + nic}
 
 	switch net.CloudPropertyType {
-	case "nat":
+	case bnet.NATType:
 		args = append(args, []string{"nat"}...)
-	case "natnetwork":
+	case bnet.NATNetworkType:
 		args = append(args, []string{"natnetwork", "--nat-network" + nic, net.CloudPropertyName}...)
-	case "hostonly":
+	case bnet.HostOnlyType:
 		args = append(args, []string{"hostonly", "--hostonlyadapter" + nic, net.CloudPropertyName}...)
 	default:
 		return "", bosherr.Errorf("Unknown network type: %s", net.CloudPropertyType)

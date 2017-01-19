@@ -65,7 +65,7 @@ func (vm VMImpl) SetMetadata(meta VMMetadata) error {
 }
 
 func (vm VMImpl) ConfigureNICs(nets Networks) (Networks, error) {
-	return NICs{vm.driver, vm}.Configure(nets)
+	return NICs{vm.driver, vm.ID()}.Configure(nets)
 }
 
 func (vm VMImpl) Delete() error {

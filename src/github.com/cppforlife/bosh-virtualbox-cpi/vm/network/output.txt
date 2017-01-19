@@ -1,0 +1,69 @@
+$ VBoxManage list natnetworks
+NetworkName:    NatNetwork
+IP:             10.0.2.1
+Network:        10.0.2.0/24
+IPv6 Enabled:   No
+IPv6 Prefix:    fd17:625c:f037:2::/64
+DHCP Enabled:   Yes
+Enabled:        Yes
+loopback mappings (ipv4)
+        127.0.0.1=2
+
+NetworkName:    NatNetwork1
+IP:             10.0.2.1
+Network:        10.0.2.0/24
+IPv6 Enabled:   Yes
+IPv6 Prefix:    fd17:625c:f037:2::/64
+DHCP Enabled:   Yes
+Enabled:        Yes
+loopback mappings (ipv4)
+        127.0.0.1=2
+
+$ VBoxManage list hostonlyifs
+Name:            vboxnet0
+GUID:            786f6276-656e-4074-8000-0a0027000000
+DHCP:            Disabled
+IPAddress:       192.168.56.1
+NetworkMask:     255.255.255.0
+IPV6Address:
+IPV6NetworkMaskPrefixLength: 0
+HardwareAddress: 0a:00:27:00:00:00
+MediumType:      Ethernet
+Status:          Up
+VBoxNetworkName: HostInterfaceNetworking-vboxnet0
+
+Name:            vboxnet1
+GUID:            786f6276-656e-4174-8000-0a0027000001
+DHCP:            Disabled
+IPAddress:       192.168.50.1
+NetworkMask:     255.255.255.0
+IPV6Address:
+IPV6NetworkMaskPrefixLength: 0
+HardwareAddress: 0a:00:27:00:00:01
+MediumType:      Ethernet
+Status:          Up
+VBoxNetworkName: HostInterfaceNetworking-vboxnet1
+
+Name:            vboxnet2
+GUID:            786f6276-656e-4274-8000-0a0027000002
+DHCP:            Disabled
+IPAddress:       192.168.64.1
+NetworkMask:     255.255.255.0
+IPV6Address:
+IPV6NetworkMaskPrefixLength: 0
+HardwareAddress: 0a:00:27:00:00:02
+MediumType:      Ethernet
+Status:          Up
+VBoxNetworkName: HostInterfaceNetworking-vboxnet2
+
+Name:            vboxnet3
+GUID:            786f6276-656e-4374-8000-0a0027000003
+DHCP:            Disabled
+IPAddress:       192.168.59.1
+NetworkMask:     255.255.255.0
+IPV6Address:     fd24:a6bd:bfdb:dff6::
+IPV6NetworkMaskPrefixLength: 64
+HardwareAddress: 0a:00:27:00:00:03
+MediumType:      Ethernet
+Status:          Up
+VBoxNetworkName: HostInterfaceNetworking-vboxnet3

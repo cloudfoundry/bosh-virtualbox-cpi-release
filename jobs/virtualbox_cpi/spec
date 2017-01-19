@@ -30,6 +30,9 @@ properties:
   storage_controller:
     description: "For some reason IDE controller seems to be more reliable. Available: scsi or ide."
     default: ide
+  auto_enable_networks:
+    description: "Automatically enabled necessary networks on first use."
+    default: true
 
   ntp:
     description: List of ntp server IPs. pool.ntp.org attempts to return IPs closest to your location, but you can still specify if needed.

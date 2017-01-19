@@ -49,8 +49,9 @@ func NewConcreteFactory(
 	disks := bdisk.NewFactory(options.DisksDir(), uuidGen, driver, runner, logger)
 
 	vmsOpts := bvm.FactoryOpts{
-		DirPath:           options.VMsDir(),
-		StorageController: options.StorageController,
+		DirPath:            options.VMsDir(),
+		StorageController:  options.StorageController,
+		AutoEnableNetworks: options.AutoEnableNetworks,
 	}
 
 	vms := bvm.NewFactory(vmsOpts, uuidGen, driver, runner, disks, options.Agent, logger)
