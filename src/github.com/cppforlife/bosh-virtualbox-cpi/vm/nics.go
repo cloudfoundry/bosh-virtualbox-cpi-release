@@ -55,7 +55,7 @@ func (n NICs) addNIC(nic string, net Network) (string, error) {
 	case "nat":
 		args = append(args, []string{"nat"}...)
 	case "natnetwork":
-		args = append(args, []string{"natnetwork", "--natnet" + nic, net.CloudPropertyName}...)
+		args = append(args, []string{"natnetwork", "--nat-network" + nic, net.CloudPropertyName}...)
 	case "hostonly":
 		args = append(args, []string{"hostonly", "--hostonlyadapter" + nic, net.CloudPropertyName}...)
 	default:
