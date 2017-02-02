@@ -15,6 +15,8 @@ type Network interface {
 	Description() string
 
 	IsEnabled() bool
+	EnabledDescription() string
+
 	IsDHCPEnabled() bool
 
 	IPNet() *net.IPNet

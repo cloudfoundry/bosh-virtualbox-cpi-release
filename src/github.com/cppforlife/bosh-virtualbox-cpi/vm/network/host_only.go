@@ -28,6 +28,8 @@ func (n HostOnly) Description() string {
 
 func (n HostOnly) IsEnabled() bool { return n.status == "Up" }
 
+func (n HostOnly) EnabledDescription() string { return "have status 'Up'" }
+
 func (n HostOnly) IsDHCPEnabled() bool { return n.dhcp }
 
 func (n HostOnly) IPNet() *net.IPNet { return n.ipNet }

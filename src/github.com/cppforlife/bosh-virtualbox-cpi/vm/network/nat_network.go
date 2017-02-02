@@ -27,6 +27,8 @@ func (n NATNetwork) Description() string {
 
 func (n NATNetwork) IsEnabled() bool { return n.enabled }
 
+func (n NATNetwork) EnabledDescription() string { return "be enabled" }
+
 func (n NATNetwork) IsDHCPEnabled() bool { return n.dhcpEnabled }
 
 func (n NATNetwork) IPNet() *net.IPNet { return n.ipNet }

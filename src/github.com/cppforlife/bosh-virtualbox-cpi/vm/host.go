@@ -88,7 +88,7 @@ func (h Host) findAndVerifyNetwork(net Network, listFunc func() ([]bnet.Network,
 
 func (h Host) verifyNetwork(net Network, actualNet bnet.Network) error {
 	if !actualNet.IsEnabled() {
-		return fmt.Errorf("Expected %s to be enabled", actualNet.Description())
+		return fmt.Errorf("Expected %s to %s", actualNet.Description(), actualNet.EnabledDescription())
 	}
 
 	if len(net.IP) == 0 {
