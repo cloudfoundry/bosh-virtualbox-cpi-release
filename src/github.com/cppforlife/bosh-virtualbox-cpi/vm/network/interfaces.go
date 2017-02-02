@@ -16,6 +16,7 @@ type Network interface {
 
 	IsEnabled() bool
 	EnabledDescription() string
+	Enable() error
 
 	IsDHCPEnabled() bool
 

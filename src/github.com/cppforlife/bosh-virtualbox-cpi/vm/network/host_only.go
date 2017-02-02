@@ -30,6 +30,20 @@ func (n HostOnly) IsEnabled() bool { return n.status == "Up" }
 
 func (n HostOnly) EnabledDescription() string { return "have status 'Up'" }
 
+func (n HostOnly) Enable() error {
+	args := []string{"hostonlyif", "ipconfig", n.name}
+
+	if len(n.ipAddress) > 0 {
+		args = append(args, []string{"--ip", n.ipAddress, "--netmask", n.networkMask}...)
+	} else {
+		args = append(args, "--dhcp")
+	}
+
+	_, err := n.driver.Execute(args...)
+
+	return err
+}
+
 func (n HostOnly) IsDHCPEnabled() bool { return n.dhcp }
 
 func (n HostOnly) IPNet() *net.IPNet { return n.ipNet }

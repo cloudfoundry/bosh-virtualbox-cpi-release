@@ -18,13 +18,13 @@ func (h Host) EnableNetworks(nets Networks) error {
 			// do nothing
 
 		case bnet.NATNetworkType:
-			err := h.verifyOrCreateNATNetwork(net)
+			err := newHostNetwork(net, natNetworksAdapter{h.networks}).Enable()
 			if err != nil {
 				return err
 			}
 
 		case bnet.HostOnlyType:
-			err := h.verifyOrCreateHostOnly(net)
+			err := newHostNetwork(net, hostOnlysAdapter{h.networks}).Enable()
 			if err != nil {
 				return err
 			}
@@ -37,83 +37,76 @@ func (h Host) EnableNetworks(nets Networks) error {
 	return nil
 }
 
-func (h Host) verifyOrCreateNATNetwork(net Network) error {
-	return h.findAndVerifyNetwork(net, h.networks.NATNetworks, func() error {
-		if len(net.IP) > 0 {
-			return fmt.Errorf("Expected to find NAT Network '%s'", net.CloudPropertyName)
-		}
+type hostNetwork struct {
+	net     Network
+	adapter netAdapter
 
-		err := h.networks.AddNATNetwork(net.CloudPropertyName)
-		if err != nil {
-			return err
-		}
-
-		return h.findAndVerifyNetwork(net, h.networks.NATNetworks, nil)
-	})
+	triedCreating bool
+	triedEnabling bool
 }
 
-func (h Host) verifyOrCreateHostOnly(net Network) error {
-	return h.findAndVerifyNetwork(net, h.networks.HostOnlys, func() error {
-		canCreate, err := h.networks.AddHostOnly(net.CloudPropertyName, net.Gateway, net.Netmask)
-		if err != nil {
-			return err
-		}
-
-		if !canCreate {
-			return fmt.Errorf("Expected to find Host-only network '%s'", net.CloudPropertyName)
-		}
-
-		return h.findAndVerifyNetwork(net, h.networks.HostOnlys, nil)
-	})
+func newHostNetwork(net Network, adapter netAdapter) *hostNetwork {
+	return &hostNetwork{net: net, adapter: adapter}
 }
 
-func (h Host) findAndVerifyNetwork(net Network, listFunc func() ([]bnet.Network, error), notFoundFunc func() error) error {
-	actualNets, err := listFunc()
+func (n *hostNetwork) Enable() error {
+	actualNets, err := n.adapter.List()
 	if err != nil {
 		return err
 	}
 
 	for _, actualNet := range actualNets {
-		if actualNet.Name() == net.CloudPropertyName {
-			return h.verifyNetwork(net, actualNet)
+		if actualNet.Name() == n.net.CloudPropertyName {
+			if !actualNet.IsEnabled() && !n.triedEnabling {
+				_ = actualNet.Enable()
+				n.triedEnabling = true
+				return n.Enable()
+			}
+			return n.verify(actualNet)
 		}
 	}
 
-	if notFoundFunc != nil {
-		return notFoundFunc()
+	if !n.triedCreating {
+		err := n.adapter.Create(n.net)
+		if err != nil {
+			return err
+		}
+		n.triedCreating = true
+		return n.Enable()
 	}
 
-	return fmt.Errorf("Expected to find network '%s'", net.CloudPropertyName)
+	return fmt.Errorf("Expected to find network '%s'", n.net.CloudPropertyName)
 }
 
-func (h Host) verifyNetwork(net Network, actualNet bnet.Network) error {
+func (n hostNetwork) verify(actualNet bnet.Network) error {
 	if !actualNet.IsEnabled() {
-		return fmt.Errorf("Expected %s to %s", actualNet.Description(), actualNet.EnabledDescription())
+		return fmt.Errorf("Expected %s to %s",
+			actualNet.Description(), actualNet.EnabledDescription())
 	}
 
-	if len(net.IP) == 0 {
+	if len(n.net.IP) == 0 {
 		if !actualNet.IsDHCPEnabled() {
 			return fmt.Errorf("Expected %s to have DHCP enabled", actualNet.Description())
 		}
 	} else {
-		ip := gonet.ParseIP(net.IP)
+		ip := gonet.ParseIP(n.net.IP)
 		if ip == nil {
 			return fmt.Errorf("Unable to parse IP address '%s' for network '%s'",
-				net.IP, net.CloudPropertyName)
+				n.net.IP, n.net.CloudPropertyName)
 		}
 
 		actualIPNet := actualNet.IPNet()
 
 		if !actualIPNet.Contains(ip) {
 			return fmt.Errorf("Expected IP address '%s' to fit within %s (%s)",
-				net.IP, actualNet.Description(), actualIPNet.String())
+				n.net.IP, actualNet.Description(), actualIPNet.String())
 		}
 
 		actualNetmask := gonet.IP(actualIPNet.Mask).String()
 
-		if actualNetmask != net.Netmask {
+		if actualNetmask != n.net.Netmask {
 			return fmt.Errorf("Expected netmask '%s' to match %s netmask '%s'",
-				net.IP, actualNet.Description(), actualNetmask)
+				n.net.IP, actualNet.Description(), actualNetmask)
 		}
 
 		// todo check gateway
@@ -123,5 +116,43 @@ func (h Host) verifyNetwork(net Network, actualNet bnet.Network) error {
 		}
 	}
 
+	return nil
+}
+
+type netAdapter interface {
+	List() ([]bnet.Network, error)
+	Create(net Network) error
+}
+
+type natNetworksAdapter struct {
+	bnet.Networks
+}
+
+func (n natNetworksAdapter) List() ([]bnet.Network, error) {
+	return n.NATNetworks()
+}
+
+func (n natNetworksAdapter) Create(net Network) error {
+	if len(net.IP) > 0 {
+		return fmt.Errorf("Expected to find NAT Network '%s'", net.CloudPropertyName)
+	}
+	return n.AddNATNetwork(net.CloudPropertyName)
+}
+
+type hostOnlysAdapter struct {
+	bnet.Networks
+}
+
+func (n hostOnlysAdapter) List() ([]bnet.Network, error) {
+	return n.HostOnlys()
+}
+
+func (n hostOnlysAdapter) Create(net Network) error {
+	canCreate, err := n.AddHostOnly(net.CloudPropertyName, net.Gateway, net.Netmask)
+	if err != nil {
+		return err
+	} else if !canCreate {
+		return fmt.Errorf("Expected to find Host-only network '%s'", net.CloudPropertyName)
+	}
 	return nil
 }
