@@ -36,7 +36,7 @@ func NewSSHRunner(opts SSHRunnerOpts, fs boshsys.FileSystem, logger boshlog.Logg
 }
 
 func (r *SSHRunner) HomeDir() (string, error) {
-	output, _, err := r.execute("sh -c 'echo ~'")
+	output, _, err := r.execute("sh -c 'USER= HOME= eval echo ~`whoami`'")
 	if err != nil {
 		return "", err
 	}

@@ -3,4 +3,4 @@
   path: /releases/name=bosh-virtualbox-cpi
   value:
     name: bosh-virtualbox-cpi
-    url: file://((local_cpi_release))
+    url: file:///tmp/vbox-cpi-release # bosh create-release --force --tarball /tmp/vbox-cpi-release

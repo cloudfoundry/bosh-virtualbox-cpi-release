@@ -22,7 +22,7 @@ func NewLocalRunner(fs boshsys.FileSystem, cmdRunner boshsys.CmdRunner, logger b
 
 func (r LocalRunner) HomeDir() (string, error) {
 	// todo use fs?
-	output, _, err := r.Execute("sh", "-c", "echo ~")
+	output, _, err := r.Execute("sh", "-c", "eval echo ~`whoami`")
 	if err != nil {
 		return "", err
 	}
