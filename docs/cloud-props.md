@@ -15,10 +15,10 @@ azs:
 
 Schema for `cloud_properties` section used by network subnet:
 
-* **name** [String, required]: Name of the network. Example: `vboxnet0`. Default: `vboxnet0`.
+* **name** [String, optional]: Name of the network. Example: `vboxnet0`.
 * **type** [String, optional]: Type of the network. See [`VBoxManage modifyvm` networking settings](https://www.virtualbox.org/manual/ch08.html#idp46691722135120) for valid values. Example: `hostonly`. Default: `hostonly`.
 
-Example of manual network:
+Example of manual network matching any name:
 
 ```yaml
 networks:
@@ -28,8 +28,6 @@ networks:
   - range:   192.168.50.0/24
     gateway: 192.168.50.1
     dns:     [192.168.50.1]
-    cloud_properties:
-      name: vboxnet0
 ```
 
 ### VM
