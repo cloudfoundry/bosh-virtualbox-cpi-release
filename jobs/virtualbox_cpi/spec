@@ -22,7 +22,7 @@ properties:
 
   bin_path:
     description: Path to VBoxManage binary on the SSH-ed machine
-    default: "/usr/local/bin/VBoxManage"
+    default: "VBoxManage"
   store_dir:
     description: Directory path to use to store stemcells, disks, and VMs managed by VirtualBox ('~' will be expanded)
     default: "~/.bosh_virtualbox_cpi"

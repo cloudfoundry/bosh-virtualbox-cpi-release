@@ -37,7 +37,13 @@ func (r LocalRunner) HomeDir() (string, error) {
 func (r LocalRunner) Execute(path string, args ...string) (string, int, error) {
 	r.logger.Debug(r.logTag, "Execute '%s %s'", path, strings.Join(args, "' '"))
 
-	stdout, stderr, status, err := r.cmdRunner.RunCommand(path, args...)
+	cmd := boshsys.Command{
+		Name: path,
+		Args: args,
+		Env:  map[string]string{"PATH": "/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"},
+	}
+
+	stdout, stderr, status, err := r.cmdRunner.RunComplexCommand(cmd)
 	return stdout + "\n" + stderr, status, err
 }
 

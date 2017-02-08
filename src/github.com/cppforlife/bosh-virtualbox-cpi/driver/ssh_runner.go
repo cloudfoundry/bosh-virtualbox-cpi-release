@@ -186,7 +186,9 @@ func (r SSHRunner) shCmd(path string, args []string, stdoutPath string) string {
 		stdoutRedir = "> " + r.shellEscape(stdoutPath)
 	}
 
-	return fmt.Sprintf(`sh -c "%s %s"`, escapedCmd, stdoutRedir)
+	envPath := "PATH=$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+
+	return fmt.Sprintf(`sh -c "%s %s %s"`, envPath, escapedCmd, stdoutRedir)
 }
 
 func (r SSHRunner) shellJoin(args []string) string {
