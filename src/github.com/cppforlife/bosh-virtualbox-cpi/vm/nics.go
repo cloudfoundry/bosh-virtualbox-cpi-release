@@ -22,7 +22,7 @@ type NICs struct {
 	vmID   string
 }
 
-func (n NICs) Configure(nets Networks) (Networks, error) {
+func (n NICs) Configure(nets Networks, host Host) (Networks, error) {
 	if len(nets) > maxNICs {
 		return nil, bosherr.Errorf("Exceeded maximum # of NICs (%d)", maxNICs)
 	}
@@ -31,7 +31,7 @@ func (n NICs) Configure(nets Networks) (Networks, error) {
 	netsWithMACs := Networks{}
 
 	for netName, net := range nets { // todo there is no network order?
-		mac, err := n.addNIC(strconv.Itoa(nicIdx), net)
+		mac, err := n.addNIC(strconv.Itoa(nicIdx), net, host)
 		if err != nil {
 			return nil, err
 		}
@@ -45,7 +45,7 @@ func (n NICs) Configure(nets Networks) (Networks, error) {
 	return netsWithMACs, nil
 }
 
-func (n NICs) addNIC(nic string, net Network) (string, error) {
+func (n NICs) addNIC(nic string, net Network, host Host) (string, error) {
 	// http://www.virtualbox.org/manual/ch06.html#network_nat_service
 	// https://www.virtualbox.org/ticket/6176
 	// `VBoxManage setextradata VM_NAME "VBoxInternal/Devices/pcnet/0/LUN#0/Config/Network" "172.23.24/24"`
@@ -55,10 +55,21 @@ func (n NICs) addNIC(nic string, net Network) (string, error) {
 	switch net.CloudPropertyType {
 	case bnet.NATType:
 		args = append(args, []string{"nat"}...)
+
 	case bnet.NATNetworkType:
-		args = append(args, []string{"natnetwork", "--nat-network" + nic, net.CloudPropertyName}...)
+		actualNet, err := host.FindNetwork(net)
+		if err != nil {
+			return "", err
+		}
+		args = append(args, []string{"natnetwork", "--nat-network" + nic, actualNet.Name()}...)
+
 	case bnet.HostOnlyType:
-		args = append(args, []string{"hostonly", "--hostonlyadapter" + nic, net.CloudPropertyName}...)
+		actualNet, err := host.FindNetwork(net)
+		if err != nil {
+			return "", err
+		}
+		args = append(args, []string{"hostonly", "--hostonlyadapter" + nic, actualNet.Name()}...)
+
 	default:
 		return "", bosherr.Errorf("Unknown network type: %s", net.CloudPropertyType)
 	}

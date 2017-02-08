@@ -22,7 +22,7 @@ type NATNetwork struct {
 func (n NATNetwork) Name() string { return n.name }
 
 func (n NATNetwork) Description() string {
-	return fmt.Sprintf("NAT Network '%s'", n.name)
+	return fmt.Sprintf("NAT Network '%s' (network %s)", n.name, n.network)
 }
 
 func (n NATNetwork) IsEnabled() bool { return n.enabled }

@@ -42,9 +42,6 @@ func (ns Networks) AsVMNetworks() bvm.Networks {
 			CloudPropertyType: network.CloudProperties.Type,
 		}
 
-		if net.CloudPropertyName == "" {
-			net.CloudPropertyName = "vboxnet0"
-		}
 		if net.CloudPropertyType == "" {
 			net.CloudPropertyType = "hostonly"
 		}

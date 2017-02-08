@@ -13,7 +13,6 @@ import (
 var (
 	netKVMatch       = regexp.MustCompile(`^([a-zA-Z0-9]+):\s*(.+)?$`)
 	netKVSpacedMatch = regexp.MustCompile(`^([a-zA-Z0-9\s]+):\s*(.+)?$`)
-	hostOnlyMatch    = regexp.MustCompile(`Interface '(.+)' was successfully created`)
 )
 
 type Networks struct {
@@ -26,6 +25,10 @@ func NewNetworks(driver driver.Driver, logger boshlog.Logger) Networks {
 }
 
 func (n Networks) AddNATNetwork(name string) error {
+	if len(name) == 0 {
+		return fmt.Errorf("Expected NAT Network to have a name")
+	}
+
 	output, err := n.driver.Execute(
 		"natnetwork", "add",
 		"--netname", name,
@@ -36,54 +39,6 @@ func (n Networks) AddNATNetwork(name string) error {
 		return err
 	}
 	return nil
-}
-
-func (n Networks) AddHostOnly(name, gateway, netmask string) (bool, error) {
-	// VB does not allow naming host-only networks, exit if it's not the first one
-	if name != "vboxnet0" {
-		return false, nil
-	}
-
-	output, err := n.driver.Execute("hostonlyif", "create")
-	if err != nil {
-		return true, err
-	}
-
-	matches := hostOnlyMatch.FindStringSubmatch(output)
-	if len(matches) != 2 {
-		panic(fmt.Sprintf("Internal inconsistency: Expected len(%s matches) == 2:", hostOnlyMatch))
-	}
-
-	createdName := matches[1]
-
-	if createdName != name {
-		n.cleanUpPartialHostOnlyCreate(createdName)
-		return true, fmt.Errorf("Expected created host-only network '%s' to have name '%s'", createdName, name)
-	}
-
-	args := []string{"hostonlyif", "ipconfig", name}
-
-	if len(gateway) > 0 {
-		args = append(args, []string{"--ip", gateway, "--netmask", netmask}...)
-	} else {
-		args = append(args, "--dhcp")
-	}
-
-	_, err = n.driver.Execute(args...)
-	if err != nil {
-		n.cleanUpPartialHostOnlyCreate(name)
-		return true, err
-	}
-
-	return true, nil
-}
-
-func (n Networks) cleanUpPartialHostOnlyCreate(name string) {
-	_, err := n.driver.Execute("hostonlyif", "remove", name)
-	if err != nil {
-		n.logger.Error("vm.network.Networks",
-			"Failed to clean up partially created host-only network '%s': %s", name, err)
-	}
 }
 
 func (n Networks) NATNetworks() ([]Network, error) {

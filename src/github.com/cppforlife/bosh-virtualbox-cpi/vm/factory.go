@@ -59,8 +59,10 @@ func NewFactory(
 }
 
 func (f Factory) Create(agentID string, stemcell bstem.Stemcell, props VMProps, networks Networks, env Environment) (VM, error) {
+	host := Host{bnet.NewNetworks(f.driver, f.logger)}
+
 	if f.opts.AutoEnableNetworks {
-		err := Host{bnet.NewNetworks(f.driver, f.logger)}.EnableNetworks(networks)
+		err := host.EnableNetworks(networks)
 		if err != nil {
 			return nil, bosherr.WrapError(err, "Enabling networks")
 		}
@@ -77,7 +79,7 @@ func (f Factory) Create(agentID string, stemcell bstem.Stemcell, props VMProps, 
 		return nil, err
 	}
 
-	networksWithMACs, err := vm.ConfigureNICs(networks)
+	networksWithMACs, err := vm.ConfigureNICs(networks, host)
 	if err != nil {
 		f.cleanUpPartialCreate(vm)
 		return nil, bosherr.WrapError(err, "Configuring NICs")

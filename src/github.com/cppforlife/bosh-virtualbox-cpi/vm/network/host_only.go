@@ -23,7 +23,7 @@ type HostOnly struct {
 func (n HostOnly) Name() string { return n.name }
 
 func (n HostOnly) Description() string {
-	return fmt.Sprintf("Host-only network '%s'", n.name)
+	return fmt.Sprintf("Host-only network '%s' (gw %s netmask %s)", n.name, n.ipAddress, n.networkMask)
 }
 
 func (n HostOnly) IsEnabled() bool { return n.status == "Up" }
