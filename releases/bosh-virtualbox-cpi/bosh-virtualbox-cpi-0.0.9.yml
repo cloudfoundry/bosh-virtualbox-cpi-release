@@ -1,0 +1,25 @@
+name: bosh-virtualbox-cpi
+version: 0.0.9
+commit_hash: 1c536be
+uncommitted_changes: false
+jobs:
+- name: virtualbox_cpi
+  version: ac9bbc51a1bb1d19719711eaaabdc94038baf2b0
+  fingerprint: ac9bbc51a1bb1d19719711eaaabdc94038baf2b0
+  sha1: 6415d2b0192b216b6fd77137ed2687d517da0838
+packages:
+- name: golang_1.7
+  version: 21609f611781e8586e713cfd7ceb389cee429c5a
+  fingerprint: 21609f611781e8586e713cfd7ceb389cee429c5a
+  sha1: c9936363e75c1ba928fe4415d72313be2fb02943
+  dependencies: []
+- name: virtualbox_cpi
+  version: 6b63fe30b538d4d161b2f9d832198ea68c3ad33b
+  fingerprint: 6b63fe30b538d4d161b2f9d832198ea68c3ad33b
+  sha1: 2ad7a9634befa93d202ef880ca768ad20b3ea938
+  dependencies:
+  - golang_1.7
+license:
+  version: 41e915dacb6f010181f8bf9d2376efbd537448fc
+  fingerprint: 41e915dacb6f010181f8bf9d2376efbd537448fc
+  sha1: beb97b2c76424ed11a6af99bef253221901fa438
