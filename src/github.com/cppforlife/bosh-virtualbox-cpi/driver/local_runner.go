@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
@@ -49,7 +50,7 @@ func (r LocalRunner) Execute(path string, args ...string) (string, int, error) {
 
 func (r LocalRunner) Upload(srcPath, dstPath string) error {
 	r.logger.Debug(r.logTag, "Upload from '%s' to '%s'", srcPath, dstPath)
-	return r.fs.Rename(srcPath, dstPath)
+	return boshfu.NewFileMover(r.fs).Move(srcPath, dstPath)
 }
 
 func (r LocalRunner) Put(path string, contents []byte) error {
