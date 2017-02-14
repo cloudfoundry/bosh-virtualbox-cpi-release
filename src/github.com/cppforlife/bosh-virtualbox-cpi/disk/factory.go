@@ -7,6 +7,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
+	apiv1 "github.com/cppforlife/bosh-cpi-go/apiv1"
 
 	"github.com/cppforlife/bosh-virtualbox-cpi/driver"
 )
@@ -47,7 +48,7 @@ func (f Factory) Create(size int) (Disk, error) {
 
 	id = "disk-" + id
 
-	disk := f.newDisk(id)
+	disk := f.newDisk(apiv1.NewDiskCID(id))
 
 	_, _, err = f.runner.Execute("mkdir", "-p", disk.Path())
 	if err != nil {
@@ -68,11 +69,11 @@ func (f Factory) Create(size int) (Disk, error) {
 	return disk, nil
 }
 
-func (f Factory) Find(id string) (Disk, error) {
-	return f.newDisk(id), nil
+func (f Factory) Find(cid apiv1.DiskCID) (Disk, error) {
+	return f.newDisk(cid), nil
 }
 
-func (f Factory) newDisk(id string) DiskImpl {
-	diskPath := filepath.Join(f.dirPath, id)
-	return NewDiskImpl(id, diskPath, f.runner, f.logger)
+func (f Factory) newDisk(cid apiv1.DiskCID) DiskImpl {
+	diskPath := filepath.Join(f.dirPath, cid.AsString())
+	return NewDiskImpl(cid, diskPath, f.runner, f.logger)
 }

@@ -7,6 +7,7 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	apiv1 "github.com/cppforlife/bosh-cpi-go/apiv1"
 
 	"github.com/cppforlife/bosh-virtualbox-cpi/driver"
 )
@@ -27,15 +28,15 @@ type PortDevicesOpts struct {
 }
 
 type PortDevices struct {
-	vmID string
-	opts PortDevicesOpts
+	vmCID apiv1.VMCID
+	opts  PortDevicesOpts
 
 	driver driver.Driver
 	logger boshlog.Logger
 }
 
-func NewPortDevices(vmID string, opts PortDevicesOpts, driver driver.Driver, logger boshlog.Logger) PortDevices {
-	return PortDevices{vmID, opts, driver, logger}
+func NewPortDevices(vmCID apiv1.VMCID, opts PortDevicesOpts, driver driver.Driver, logger boshlog.Logger) PortDevices {
+	return PortDevices{vmCID, opts, driver, logger}
 }
 
 func (d PortDevices) CDROM() (CDROM, error) {
@@ -46,7 +47,7 @@ func (d PortDevices) CDROM() (CDROM, error) {
 	}
 
 	// todo pick available?
-	return CDROM{driver: d.driver, vmID: d.vmID, name: name, port: "0", device: "0"}, nil
+	return CDROM{driver: d.driver, vmCID: d.vmCID, name: name, port: "0", device: "0"}, nil
 }
 
 func (d PortDevices) FindAvailable() (PortDevice, error) {
@@ -80,7 +81,7 @@ func (d PortDevices) Find(controller, port, device string) (PortDevice, error) {
 		return PortDevice{}, err
 	}
 
-	return NewPortDevice(d.driver, d.vmID, controller, name, port, device), nil
+	return NewPortDevice(d.driver, d.vmCID, controller, name, port, device), nil
 }
 
 func (d PortDevices) availablePDs() ([]PortDevice, error) {
@@ -112,7 +113,7 @@ func (d PortDevices) availablePDs() ([]PortDevice, error) {
 			if len(matches) != 3 {
 				panic("Internal inconsistency: Expected len(portDeviceConfig matches) == 3")
 			}
-			pd := NewPortDevice(d.driver, d.vmID, d.opts.Controller, name, matches[1], matches[2])
+			pd := NewPortDevice(d.driver, d.vmCID, d.opts.Controller, name, matches[1], matches[2])
 			pds = append(pds, pd)
 		}
 	}
@@ -121,7 +122,7 @@ func (d PortDevices) availablePDs() ([]PortDevice, error) {
 }
 
 func (d PortDevices) determineControllerName(nameMatch *regexp.Regexp) (string, string, error) {
-	output, err := d.driver.Execute("showvminfo", d.vmID, "--machinereadable")
+	output, err := d.driver.Execute("showvminfo", d.vmCID.AsString(), "--machinereadable")
 	if err != nil {
 		return "", output, bosherr.WrapErrorf(err, "Determining controller name")
 	}

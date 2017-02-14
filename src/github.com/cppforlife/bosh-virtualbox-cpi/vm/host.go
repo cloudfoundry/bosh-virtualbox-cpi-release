@@ -12,7 +12,7 @@ type Host struct {
 }
 
 func (h Host) FindNetwork(net Network) (bnet.Network, error) {
-	switch net.CloudPropertyType {
+	switch net.CloudPropertyType() {
 	case bnet.NATType:
 		return nil, fmt.Errorf("NAT networks cannot be searched")
 
@@ -23,13 +23,13 @@ func (h Host) FindNetwork(net Network) (bnet.Network, error) {
 		return newHostNetwork(net, hostOnlysAdapter{h.networks}).Find()
 
 	default:
-		return nil, fmt.Errorf("Unknown network type: %s", net.CloudPropertyType)
+		return nil, fmt.Errorf("Unknown network type: %s", net.CloudPropertyType())
 	}
 }
 
 func (h Host) EnableNetworks(nets Networks) error {
 	for _, net := range nets {
-		switch net.CloudPropertyType {
+		switch net.CloudPropertyType() {
 		case bnet.NATType:
 			// do nothing
 
@@ -46,7 +46,7 @@ func (h Host) EnableNetworks(nets Networks) error {
 			}
 
 		default:
-			return fmt.Errorf("Unknown network type: %s", net.CloudPropertyType)
+			return fmt.Errorf("Unknown network type: %s", net.CloudPropertyType())
 		}
 	}
 
@@ -77,7 +77,7 @@ func (n *hostNetwork) Find() (bnet.Network, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("Expected to find network '%s'", n.net.CloudPropertyName) // todo
+	return nil, fmt.Errorf("Expected to find network '%s'", n.net.CloudPropertyName())
 }
 
 func (n *hostNetwork) Enable() error {
@@ -106,7 +106,7 @@ func (n *hostNetwork) Enable() error {
 		return n.Enable()
 	}
 
-	return fmt.Errorf("Expected to find network '%s'", n.net.CloudPropertyName)
+	return fmt.Errorf("Expected to find network '%s'", n.net.CloudPropertyName())
 }
 
 func (n hostNetwork) verify(actualNet bnet.Network) error {
@@ -115,28 +115,28 @@ func (n hostNetwork) verify(actualNet bnet.Network) error {
 			actualNet.Description(), actualNet.EnabledDescription())
 	}
 
-	if len(n.net.IP) == 0 {
+	if len(n.net.IP()) == 0 {
 		if !actualNet.IsDHCPEnabled() {
 			return fmt.Errorf("Expected %s to have DHCP enabled", actualNet.Description())
 		}
 	} else {
-		ip := gonet.ParseIP(n.net.IP)
+		ip := gonet.ParseIP(n.net.IP())
 		if ip == nil {
 			return fmt.Errorf("Unable to parse IP address '%s' for network '%s'",
-				n.net.IP, n.net.CloudPropertyName)
+				n.net.IP(), n.net.CloudPropertyName())
 		}
 
 		actualIPNet := actualNet.IPNet()
 
 		if !actualIPNet.Contains(ip) {
-			return fmt.Errorf("Expected IP address '%s' to fit within %s", n.net.IP, actualNet.Description())
+			return fmt.Errorf("Expected IP address '%s' to fit within %s", n.net.IP(), actualNet.Description())
 		}
 
 		actualNetmask := gonet.IP(actualIPNet.Mask).String()
 
-		if actualNetmask != n.net.Netmask {
+		if actualNetmask != n.net.Netmask() {
 			return fmt.Errorf("Expected netmask '%s' to match %s netmask '%s'",
-				n.net.IP, actualNet.Description(), actualNetmask)
+				n.net.IP(), actualNet.Description(), actualNetmask)
 		}
 
 		// todo check gateway
@@ -164,14 +164,14 @@ func (n natNetworksAdapter) List() ([]bnet.Network, error) {
 }
 
 func (n natNetworksAdapter) Create(net Network) error {
-	if len(net.IP) > 0 {
-		return fmt.Errorf("Expected to find NAT Network '%s'", net.CloudPropertyName)
+	if len(net.IP()) > 0 {
+		return fmt.Errorf("Expected to find NAT Network '%s'", net.CloudPropertyName())
 	}
-	return n.AddNATNetwork(net.CloudPropertyName)
+	return n.AddNATNetwork(net.CloudPropertyName())
 }
 
 func (n natNetworksAdapter) Matches(net Network, actualNet bnet.Network) bool {
-	return net.CloudPropertyName == actualNet.Name()
+	return net.CloudPropertyName() == actualNet.Name()
 }
 
 type hostOnlysAdapter struct {
@@ -183,22 +183,22 @@ func (n hostOnlysAdapter) List() ([]bnet.Network, error) {
 }
 
 func (n hostOnlysAdapter) Create(net Network) error {
-	canCreate, err := n.AddHostOnly(net.CloudPropertyName, net.Gateway, net.Netmask)
+	canCreate, err := n.AddHostOnly(net.CloudPropertyName(), net.Gateway(), net.Netmask())
 	if err != nil {
 		return err
 	} else if !canCreate {
-		return fmt.Errorf("Expected to find Host-only network '%s'", net.CloudPropertyName)
+		return fmt.Errorf("Expected to find Host-only network '%s'", net.CloudPropertyName())
 	}
 	return nil
 }
 
 func (n hostOnlysAdapter) Matches(net Network, actualNet bnet.Network) bool {
-	if len(net.CloudPropertyName) > 0 {
-		return net.CloudPropertyName == actualNet.Name()
+	if len(net.CloudPropertyName()) > 0 {
+		return net.CloudPropertyName() == actualNet.Name()
 	}
 
 	actualIP := gonet.IP(actualNet.IPNet().IP).String()
 	actualNetmask := gonet.IP(actualNet.IPNet().Mask).String()
 
-	return actualNetmask == net.Netmask && actualIP == net.Gateway
+	return actualNetmask == net.Netmask() && actualIP == net.Gateway()
 }

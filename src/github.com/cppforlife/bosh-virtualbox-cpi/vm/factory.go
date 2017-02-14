@@ -6,6 +6,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
+	apiv1 "github.com/cppforlife/bosh-cpi-go/apiv1"
 
 	bdisk "github.com/cppforlife/bosh-virtualbox-cpi/disk"
 	"github.com/cppforlife/bosh-virtualbox-cpi/driver"
@@ -28,7 +29,7 @@ type Factory struct {
 	runner      driver.Runner
 	diskFactory bdisk.Factory
 
-	agentOptions AgentOptions
+	agentOptions apiv1.AgentOptions
 
 	logTag string
 	logger boshlog.Logger
@@ -40,7 +41,7 @@ func NewFactory(
 	driver driver.Driver,
 	runner driver.Runner,
 	diskFactory bdisk.Factory,
-	agentOptions AgentOptions,
+	agentOptions apiv1.AgentOptions,
 	logger boshlog.Logger,
 ) Factory {
 	return Factory{
@@ -58,11 +59,28 @@ func NewFactory(
 	}
 }
 
-func (f Factory) Create(agentID string, stemcell bstem.Stemcell, props VMProps, networks Networks, env Environment) (VM, error) {
+func (f Factory) Create(
+	agentID apiv1.AgentID,
+	stemcell bstem.Stemcell,
+	props apiv1.VMCloudProps,
+	networks apiv1.Networks,
+	env apiv1.VMEnv,
+) (VM, error) {
+
 	host := Host{bnet.NewNetworks(f.driver, f.logger)}
 
+	vmProps, err := NewVMProps(props)
+	if err != nil {
+		return nil, err
+	}
+
+	vmNetworks, err := NewNetworks(networks)
+	if err != nil {
+		return nil, err
+	}
+
 	if f.opts.AutoEnableNetworks {
-		err := host.EnableNetworks(networks)
+		err := host.EnableNetworks(vmNetworks)
 		if err != nil {
 			return nil, bosherr.WrapError(err, "Enabling networks")
 		}
@@ -73,19 +91,22 @@ func (f Factory) Create(agentID string, stemcell bstem.Stemcell, props VMProps, 
 		return nil, err
 	}
 
-	err = vm.SetProps(props)
+	err = vm.SetProps(vmProps)
 	if err != nil {
 		f.cleanUpPartialCreate(vm)
 		return nil, err
 	}
 
-	networksWithMACs, err := vm.ConfigureNICs(networks, host)
+	err = vm.ConfigureNICs(vmNetworks, host)
 	if err != nil {
 		f.cleanUpPartialCreate(vm)
 		return nil, bosherr.WrapError(err, "Configuring NICs")
 	}
 
-	initialAgentEnv := NewAgentEnvForVM(agentID, vm.ID(), networksWithMACs, env, f.agentOptions)
+	initialAgentEnv := apiv1.NewAgentEnvFactory().ForVM(
+		agentID, vm.ID(), vmNetworks.AsNetworks(), env, f.agentOptions)
+
+	initialAgentEnv.AttachSystemDisk("0")
 
 	err = vm.ConfigureAgent(initialAgentEnv)
 	if err != nil {
@@ -93,7 +114,7 @@ func (f Factory) Create(agentID string, stemcell bstem.Stemcell, props VMProps, 
 		return nil, bosherr.WrapError(err, "Initial agent configuration")
 	}
 
-	ephemeralDisk, err := f.diskFactory.Create(props.EphemeralDisk)
+	ephemeralDisk, err := f.diskFactory.Create(vmProps.EphemeralDisk)
 	if err != nil {
 		f.cleanUpPartialCreate(vm)
 		return nil, bosherr.WrapError(err, "Creating ephemeral disk")
@@ -105,7 +126,7 @@ func (f Factory) Create(agentID string, stemcell bstem.Stemcell, props VMProps, 
 		return nil, bosherr.WrapError(err, "Attaching ephemeral disk")
 	}
 
-	err = vm.Start(props.GUI)
+	err = vm.Start(vmProps.GUI)
 	if err != nil {
 		f.cleanUpPartialCreate(vm)
 		return nil, bosherr.WrapError(err, "Starting VM")
@@ -121,15 +142,15 @@ func (f Factory) cleanUpPartialCreate(vm VM) {
 	}
 }
 
-func (f Factory) newVM(id string) VMImpl {
+func (f Factory) newVM(cid apiv1.VMCID) VMImpl {
 	pdsOpts := bpds.PortDevicesOpts{Controller: f.opts.StorageController}
-	portDevices := bpds.NewPortDevices(id, pdsOpts, f.driver, f.logger)
-	store := NewStore(filepath.Join(f.opts.DirPath, id), f.runner)
-	return NewVMImpl(id, portDevices, store, f.driver, f.logger)
+	portDevices := bpds.NewPortDevices(cid, pdsOpts, f.driver, f.logger)
+	store := NewStore(filepath.Join(f.opts.DirPath, cid.AsString()), f.runner)
+	return NewVMImpl(cid, portDevices, store, f.driver, f.logger)
 }
 
-func (f Factory) Find(id string) (VM, error) {
-	return f.newVM(id), nil
+func (f Factory) Find(cid apiv1.VMCID) (VM, error) {
+	return f.newVM(cid), nil
 }
 
 func (f Factory) newClonedVM(stemcell bstem.Stemcell) (VMImpl, error) {
@@ -141,7 +162,7 @@ func (f Factory) newClonedVM(stemcell bstem.Stemcell) (VMImpl, error) {
 	cloneID := "vm-" + cloneIDInternal
 
 	_, err = f.driver.Execute(
-		"clonevm", stemcell.ID(),
+		"clonevm", stemcell.ID().AsString(),
 		"--snapshot", stemcell.SnapshotName(),
 		"--options", "link",
 		"--name", cloneID, // extra non-conflicting
@@ -152,5 +173,5 @@ func (f Factory) newClonedVM(stemcell bstem.Stemcell) (VMImpl, error) {
 		return VMImpl{}, bosherr.WrapError(err, "Cloning VM")
 	}
 
-	return f.newVM(cloneID), nil
+	return f.newVM(apiv1.NewVMCID(cloneID)), nil
 }

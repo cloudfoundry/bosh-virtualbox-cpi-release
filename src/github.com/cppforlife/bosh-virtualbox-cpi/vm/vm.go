@@ -6,13 +6,14 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	apiv1 "github.com/cppforlife/bosh-cpi-go/apiv1"
 
 	"github.com/cppforlife/bosh-virtualbox-cpi/driver"
 	bpds "github.com/cppforlife/bosh-virtualbox-cpi/vm/portdevices"
 )
 
 type VMImpl struct {
-	id          string
+	cid         apiv1.VMCID
 	portDevices bpds.PortDevices
 	store       Store
 
@@ -21,14 +22,14 @@ type VMImpl struct {
 }
 
 func NewVMImpl(
-	id string,
+	cid apiv1.VMCID,
 	portDevices bpds.PortDevices,
 	store Store,
 	driver driver.Driver,
 	logger boshlog.Logger,
 ) VMImpl {
 	return VMImpl{
-		id:          id,
+		cid:         cid,
 		portDevices: portDevices,
 		store:       store,
 		driver:      driver,
@@ -36,12 +37,12 @@ func NewVMImpl(
 	}
 }
 
-func (vm VMImpl) ID() string { return vm.id }
+func (vm VMImpl) ID() apiv1.VMCID { return vm.cid }
 
 func (vm VMImpl) SetProps(props VMProps) error {
 	_, err := vm.driver.Execute(
-		"modifyvm", vm.id,
-		"--name", vm.id,
+		"modifyvm", vm.cid.AsString(),
+		"--name", vm.cid.AsString(),
 		"--memory", strconv.Itoa(props.Memory),
 		"--cpus", strconv.Itoa(props.CPUs),
 		// Using minimal paravirtualization provider to avoid CPU lockups
@@ -50,7 +51,8 @@ func (vm VMImpl) SetProps(props VMProps) error {
 	return err
 }
 
-func (vm VMImpl) SetMetadata(meta VMMetadata) error {
+func (vm VMImpl) SetMetadata(meta apiv1.VMMeta) error {
+	// todo can we do better?
 	bytes, err := json.Marshal(meta)
 	if err != nil {
 		return bosherr.WrapError(err, "Marshaling VM metadata")
@@ -64,7 +66,7 @@ func (vm VMImpl) SetMetadata(meta VMMetadata) error {
 	return nil
 }
 
-func (vm VMImpl) ConfigureNICs(nets Networks, host Host) (Networks, error) {
+func (vm VMImpl) ConfigureNICs(nets Networks, host Host) error {
 	return NICs{vm.driver, vm.ID()}.Configure(nets, host)
 }
 
@@ -80,7 +82,7 @@ func (vm VMImpl) Delete() error {
 		return err
 	}
 
-	_, err = vm.driver.Execute("unregistervm", vm.id, "--delete")
+	_, err = vm.driver.Execute("unregistervm", vm.cid.AsString(), "--delete")
 	if err != nil {
 		return err
 	}

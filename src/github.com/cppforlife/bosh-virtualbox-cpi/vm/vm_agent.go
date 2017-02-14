@@ -1,53 +1,46 @@
 package vm
 
 import (
-	"encoding/json"
-
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	apiv1 "github.com/cppforlife/bosh-cpi-go/apiv1"
 )
 
-func (vm VMImpl) ConfigureAgent(agentEnv AgentEnv) error {
-	bytes, err := json.Marshal(agentEnv)
+func (vm VMImpl) ConfigureAgent(agentEnv apiv1.AgentEnv) error {
+	_, err := vm.configureAgent(agentEnv)
+	return err
+}
+
+func (vm VMImpl) configureAgent(agentEnv apiv1.AgentEnv) ([]byte, error) {
+	bytes, err := agentEnv.AsBytes()
 	if err != nil {
-		return bosherr.WrapError(err, "Marshalling agent env")
+		return nil, bosherr.WrapError(err, "Marshalling agent env")
 	}
 
 	err = vm.store.Put("env.json", bytes)
 	if err != nil {
-		return bosherr.WrapError(err, "Updating agent env")
+		return nil, bosherr.WrapError(err, "Updating agent env")
 	}
 
-	return nil
+	return bytes, nil
 }
 
-func (vm VMImpl) reconfigureAgent(hotPlug bool, agentEnvFunc func(AgentEnv) AgentEnv) error {
+func (vm VMImpl) reconfigureAgent(hotPlug bool, agentEnvFunc func(apiv1.AgentEnv)) error {
+	// todo hide unmarshaling within apiv1
 	prevContents, err := vm.store.Get("env.json")
 	if err != nil {
 		return bosherr.WrapError(err, "Fetching agent env")
 	}
 
-	var prevAgentEnv AgentEnv
-
-	err = json.Unmarshal(prevContents, &prevAgentEnv)
+	agentEnv, err := apiv1.NewAgentEnvFactory().FromBytes(prevContents)
 	if err != nil {
 		return bosherr.WrapError(err, "Unmarshalling agent env")
 	}
 
-	updatedAgentEnv := agentEnvFunc(prevAgentEnv)
+	agentEnvFunc(agentEnv)
 
-	err = vm.ConfigureAgent(updatedAgentEnv)
+	newContents, err := vm.configureAgent(agentEnv)
 	if err != nil {
 		return err
-	}
-
-	newContents, err := json.Marshal(updatedAgentEnv)
-	if err != nil {
-		return bosherr.WrapError(err, "Marshalling agent env")
-	}
-
-	err = vm.store.Put("env.json", newContents)
-	if err != nil {
-		return bosherr.WrapError(err, "Updating agent env")
 	}
 
 	isoBytes, err := ISO9660{FileName: "ENV", Contents: newContents}.Bytes()

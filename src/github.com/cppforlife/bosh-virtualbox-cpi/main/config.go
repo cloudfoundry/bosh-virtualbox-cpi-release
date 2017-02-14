@@ -6,10 +6,10 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
-	action "github.com/cppforlife/bosh-virtualbox-cpi/action"
+	"github.com/cppforlife/bosh-virtualbox-cpi/cpi"
 )
 
-type Config action.ConcreteFactoryOptions
+type Config cpi.FactoryOpts
 
 func NewConfigFromPath(path string, fs boshsys.FileSystem) (Config, error) {
 	var config Config
@@ -24,7 +24,7 @@ func NewConfigFromPath(path string, fs boshsys.FileSystem) (Config, error) {
 		return config, bosherr.WrapError(err, "Unmarshalling config")
 	}
 
-	err = action.ConcreteFactoryOptions(config).Validate()
+	err = cpi.FactoryOpts(config).Validate()
 	if err != nil {
 		return config, bosherr.WrapError(err, "Validating configuration")
 	}

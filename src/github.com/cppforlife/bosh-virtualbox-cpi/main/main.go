@@ -10,10 +10,9 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
+	"github.com/cppforlife/bosh-cpi-go/rpc"
 
-	"github.com/cppforlife/bosh-virtualbox-cpi/action"
-	bdisp "github.com/cppforlife/bosh-virtualbox-cpi/api/dispatcher"
-	btran "github.com/cppforlife/bosh-virtualbox-cpi/api/transport"
+	"github.com/cppforlife/bosh-virtualbox-cpi/cpi"
 )
 
 var (
@@ -21,7 +20,7 @@ var (
 )
 
 func main() {
-	rand.Seed(time.Now().UTC().UnixNano()) // MAC generation
+	rand.Seed(time.Now().UTC().UnixNano()) // todo MAC generation
 
 	logger, fs, cmdRunner, uuidGen := basicDeps()
 	defer logger.HandlePanic("Main")
@@ -34,13 +33,16 @@ func main() {
 		os.Exit(1)
 	}
 
-	dispatcher := buildDispatcher(config, logger, fs, cmdRunner, uuidGen)
+	compressor := boshcmd.NewTarballCompressor(cmdRunner, fs)
 
-	cli := btran.NewCLI(os.Stdin, os.Stdout, dispatcher, logger)
+	cpiFactory := cpi.NewFactory(
+		fs, cmdRunner, uuidGen, compressor, cpi.FactoryOpts(config), logger)
+
+	cli := rpc.NewFactory(logger).NewCLI(cpiFactory)
 
 	err = cli.ServeOnce()
 	if err != nil {
-		logger.Error("main", "Serving once %s", err)
+		logger.Error("main", "Serving once: %s", err)
 		os.Exit(1)
 	}
 }
@@ -51,17 +53,4 @@ func basicDeps() (boshlog.Logger, boshsys.FileSystem, boshsys.CmdRunner, boshuui
 	cmdRunner := boshsys.NewExecCmdRunner(logger)
 	uuidGen := boshuuid.NewGenerator()
 	return logger, fs, cmdRunner, uuidGen
-}
-
-func buildDispatcher(
-	config Config,
-	logger boshlog.Logger,
-	fs boshsys.FileSystem,
-	cmdRunner boshsys.CmdRunner,
-	uuidGen boshuuid.Generator,
-) bdisp.Dispatcher {
-	compressor := boshcmd.NewTarballCompressor(cmdRunner, fs)
-	actionFactory := action.NewConcreteFactory(fs, cmdRunner, uuidGen, compressor, action.ConcreteFactoryOptions(config), logger)
-	caller := bdisp.NewJSONCaller()
-	return bdisp.NewJSON(actionFactory, caller, logger)
 }

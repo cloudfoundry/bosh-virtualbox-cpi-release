@@ -1,15 +1,15 @@
-package action
+package cpi
 
 import (
 	"path/filepath"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	apiv1 "github.com/cppforlife/bosh-cpi-go/apiv1"
 
-	bvm "github.com/cppforlife/bosh-virtualbox-cpi/vm"
 	bpds "github.com/cppforlife/bosh-virtualbox-cpi/vm/portdevices"
 )
 
-type ConcreteFactoryOptions struct {
+type FactoryOpts struct {
 	Host       string
 	Username   string
 	PrivateKey string
@@ -20,10 +20,10 @@ type ConcreteFactoryOptions struct {
 	StorageController  string
 	AutoEnableNetworks bool
 
-	Agent bvm.AgentOptions
+	Agent apiv1.AgentOptions
 }
 
-func (o ConcreteFactoryOptions) Validate() error {
+func (o FactoryOpts) Validate() error {
 	if len(o.Host) > 0 {
 		if o.Username == "" {
 			return bosherr.Error("Must provide non-empty Username")
@@ -57,14 +57,14 @@ func (o ConcreteFactoryOptions) Validate() error {
 	return nil
 }
 
-func (o ConcreteFactoryOptions) StemcellsDir() string {
+func (o FactoryOpts) StemcellsDir() string {
 	return filepath.Join(o.StoreDir, "stemcells")
 }
 
-func (o ConcreteFactoryOptions) VMsDir() string {
+func (o FactoryOpts) VMsDir() string {
 	return filepath.Join(o.StoreDir, "vms")
 }
 
-func (o ConcreteFactoryOptions) DisksDir() string {
+func (o FactoryOpts) DisksDir() string {
 	return filepath.Join(o.StoreDir, "disks")
 }

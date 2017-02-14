@@ -1,5 +1,9 @@
 package disk
 
+import (
+	apiv1 "github.com/cppforlife/bosh-cpi-go/apiv1"
+)
+
 type Creator interface {
 	Create(int) (Disk, error)
 }
@@ -7,13 +11,13 @@ type Creator interface {
 var _ Creator = Factory{}
 
 type Finder interface {
-	Find(string) (Disk, error)
+	Find(apiv1.DiskCID) (Disk, error)
 }
 
 var _ Finder = Factory{}
 
 type Disk interface {
-	ID() string
+	ID() apiv1.DiskCID
 
 	Path() string
 	VMDKPath() string

@@ -13,7 +13,7 @@ func (vm VMImpl) hotPlug(innerFunc func() error) error {
 
 	// http://dlc.sun.com.edgesuite.net/virtualbox/4.2.16/UserManual.pdf
 	// Section 9.25: VirtualBox expert storage management
-	_, err := vm.driver.Execute("setextradata", vm.id, "VBoxInternal2/SilentReconfigureWhilePaused", "1")
+	_, err := vm.driver.Execute("setextradata", vm.cid.AsString(), "VBoxInternal2/SilentReconfigureWhilePaused", "1")
 	if err != nil {
 		return err
 	}
@@ -27,7 +27,7 @@ func (vm VMImpl) hotPlug(innerFunc func() error) error {
 
 	if running {
 		needsToResume = true
-		_, err = vm.driver.Execute("controlvm", vm.id, "pause")
+		_, err = vm.driver.Execute("controlvm", vm.cid.AsString(), "pause")
 		if err != nil {
 			return err
 		}
@@ -40,7 +40,7 @@ func (vm VMImpl) hotPlug(innerFunc func() error) error {
 
 	// todo should always do this?
 	if needsToResume {
-		_, err = vm.driver.Execute("controlvm", vm.id, "resume")
+		_, err = vm.driver.Execute("controlvm", vm.cid.AsString(), "resume")
 	}
 
 	return err

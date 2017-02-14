@@ -13,6 +13,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
+	apiv1 "github.com/cppforlife/bosh-cpi-go/apiv1"
 
 	"github.com/cppforlife/bosh-virtualbox-cpi/driver"
 	bpds "github.com/cppforlife/bosh-virtualbox-cpi/vm/portdevices"
@@ -96,7 +97,7 @@ func (f Factory) ImportFromPath(imagePath string) (Stemcell, error) {
 		return nil, bosherr.WrapErrorf(err, "Setting stemcell name")
 	}
 
-	stemcell := f.newStemcell(id)
+	stemcell := f.newStemcell(apiv1.NewStemcellCID(id))
 
 	err = stemcell.Prepare()
 	if err != nil {
@@ -107,12 +108,13 @@ func (f Factory) ImportFromPath(imagePath string) (Stemcell, error) {
 	return stemcell, err
 }
 
-func (f Factory) Find(id string) (Stemcell, error) {
-	return f.newStemcell(id), nil
+func (f Factory) Find(cid apiv1.StemcellCID) (Stemcell, error) {
+	return f.newStemcell(cid), nil
 }
 
-func (f Factory) newStemcell(id string) StemcellImpl {
-	return NewStemcellImpl(id, filepath.Join(f.opts.DirPath, id), f.driver, f.runner, f.logger)
+func (f Factory) newStemcell(cid apiv1.StemcellCID) StemcellImpl {
+	path := filepath.Join(f.opts.DirPath, cid.AsString())
+	return NewStemcellImpl(cid, path, f.driver, f.runner, f.logger)
 }
 
 func (f Factory) upload(imagePath, stemcellPath string) error {

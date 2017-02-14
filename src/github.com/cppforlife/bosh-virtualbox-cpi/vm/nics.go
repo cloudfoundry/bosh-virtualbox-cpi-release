@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	apiv1 "github.com/cppforlife/bosh-cpi-go/apiv1"
 
 	"github.com/cppforlife/bosh-virtualbox-cpi/driver"
 	bnet "github.com/cppforlife/bosh-virtualbox-cpi/vm/network"
@@ -19,30 +20,27 @@ const (
 
 type NICs struct {
 	driver driver.Driver
-	vmID   string
+	vmCID  apiv1.VMCID
 }
 
-func (n NICs) Configure(nets Networks, host Host) (Networks, error) {
+func (n NICs) Configure(nets Networks, host Host) error {
 	if len(nets) > maxNICs {
-		return nil, bosherr.Errorf("Exceeded maximum # of NICs (%d)", maxNICs)
+		return bosherr.Errorf("Exceeded maximum # of NICs (%d)", maxNICs)
 	}
 
 	nicIdx := 1
-	netsWithMACs := Networks{}
 
-	for netName, net := range nets { // todo there is no network order?
+	for _, net := range nets { // todo there is no network order?
 		mac, err := n.addNIC(strconv.Itoa(nicIdx), net, host)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
-		net.MAC = mac
-		netsWithMACs[netName] = net
-
+		net.SetMAC(mac)
 		nicIdx++
 	}
 
-	return netsWithMACs, nil
+	return nil
 }
 
 func (n NICs) addNIC(nic string, net Network, host Host) (string, error) {
@@ -50,9 +48,9 @@ func (n NICs) addNIC(nic string, net Network, host Host) (string, error) {
 	// https://www.virtualbox.org/ticket/6176
 	// `VBoxManage setextradata VM_NAME "VBoxInternal/Devices/pcnet/0/LUN#0/Config/Network" "172.23.24/24"`
 	// `VBoxManage setextradata VM_NAME "VBoxInternal/Devices/pcnet/0/LUN#0/Config/DNSProxy" 1`
-	args := []string{"modifyvm", n.vmID, "--nic" + nic}
+	args := []string{"modifyvm", n.vmCID.AsString(), "--nic" + nic}
 
-	switch net.CloudPropertyType {
+	switch net.CloudPropertyType() {
 	case bnet.NATType:
 		args = append(args, []string{"nat"}...)
 
@@ -71,7 +69,7 @@ func (n NICs) addNIC(nic string, net Network, host Host) (string, error) {
 		args = append(args, []string{"hostonly", "--hostonlyadapter" + nic, actualNet.Name()}...)
 
 	default:
-		return "", bosherr.Errorf("Unknown network type: %s", net.CloudPropertyType)
+		return "", bosherr.Errorf("Unknown network type: %s", net.CloudPropertyType())
 	}
 
 	mac, err := n.randomMAC()

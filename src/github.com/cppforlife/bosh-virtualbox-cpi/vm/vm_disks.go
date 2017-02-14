@@ -5,17 +5,18 @@ import (
 	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	apiv1 "github.com/cppforlife/bosh-cpi-go/apiv1"
 
 	bdisk "github.com/cppforlife/bosh-virtualbox-cpi/disk"
 )
 
-func (vm VMImpl) DiskIDs() ([]string, error) {
+func (vm VMImpl) DiskIDs() ([]apiv1.DiskCID, error) {
 	ids, err := diskAttachmentRecords{vm.store}.List()
 	if err != nil {
 		return nil, err
 	}
 
-	var persistentIDs []string
+	var persistentIDs []apiv1.DiskCID
 
 	for _, id := range ids {
 		rec, err := diskAttachmentRecords{vm.store}.Get(id)
@@ -50,7 +51,7 @@ func (vm VMImpl) attachDisk(disk bdisk.Disk, ephemeral bool) error {
 	}
 
 	rec := diskAttachmentRecord{
-		ID:        disk.ID(),
+		ID:        disk.ID().AsString(),
 		Ephemeral: ephemeral,
 
 		Controller: pd.Controller(),
@@ -63,11 +64,11 @@ func (vm VMImpl) attachDisk(disk bdisk.Disk, ephemeral bool) error {
 		return err
 	}
 
-	agentUpdateFunc := func(agentEnv AgentEnv) AgentEnv {
+	agentUpdateFunc := func(agentEnv apiv1.AgentEnv) {
 		if ephemeral {
-			return agentEnv.AttachEphemeralDisk(pd.Hint())
+			agentEnv.AttachEphemeralDisk(pd.Hint())
 		} else {
-			return agentEnv.AttachPersistentDisk(disk.ID(), pd.Hint())
+			agentEnv.AttachPersistentDisk(disk.ID(), pd.Hint())
 		}
 	}
 
@@ -101,8 +102,8 @@ func (vm VMImpl) DetachDisk(disk bdisk.Disk) error {
 		return err
 	}
 
-	agentUpdateFunc := func(agentEnv AgentEnv) AgentEnv {
-		return agentEnv.DetachPersistentDisk(disk.ID())
+	agentUpdateFunc := func(agentEnv apiv1.AgentEnv) {
+		agentEnv.DetachPersistentDisk(disk.ID())
 	}
 
 	err = vm.reconfigureAgent(false, agentUpdateFunc)
@@ -165,29 +166,29 @@ const (
 	diskAttachmentRecordsSuffix = "-disk-attachment.json"
 )
 
-func (r diskAttachmentRecords) List() ([]string, error) {
+func (r diskAttachmentRecords) List() ([]apiv1.DiskCID, error) {
 	keys, err := r.store.List()
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Listing disk attachments")
 	}
 
-	var ids []string
+	var ids []apiv1.DiskCID
 
 	for _, key := range keys {
 		if !strings.HasSuffix(key, diskAttachmentRecordsSuffix) {
 			continue
 		}
 
-		ids = append(ids, strings.TrimSuffix(key, diskAttachmentRecordsSuffix))
+		ids = append(ids, apiv1.NewDiskCID(strings.TrimSuffix(key, diskAttachmentRecordsSuffix)))
 	}
 
 	return ids, nil
 }
 
-func (r diskAttachmentRecords) Get(diskID string) (diskAttachmentRecord, error) {
+func (r diskAttachmentRecords) Get(cid apiv1.DiskCID) (diskAttachmentRecord, error) {
 	var rec diskAttachmentRecord
 
-	bytes, err := r.store.Get(diskID + diskAttachmentRecordsSuffix)
+	bytes, err := r.store.Get(cid.AsString() + diskAttachmentRecordsSuffix)
 	if err != nil {
 		return rec, bosherr.WrapError(err, "Getting disk attachment")
 	}
@@ -200,13 +201,13 @@ func (r diskAttachmentRecords) Get(diskID string) (diskAttachmentRecord, error) 
 	return rec, nil
 }
 
-func (r diskAttachmentRecords) Save(diskID string, rec diskAttachmentRecord) error {
+func (r diskAttachmentRecords) Save(cid apiv1.DiskCID, rec diskAttachmentRecord) error {
 	bytes, err := json.Marshal(rec)
 	if err != nil {
 		return bosherr.WrapError(err, "Serializing disk attachment")
 	}
 
-	err = r.store.Put(diskID+diskAttachmentRecordsSuffix, bytes)
+	err = r.store.Put(cid.AsString()+diskAttachmentRecordsSuffix, bytes)
 	if err != nil {
 		return bosherr.WrapError(err, "Saving disk attachment")
 	}
@@ -214,6 +215,6 @@ func (r diskAttachmentRecords) Save(diskID string, rec diskAttachmentRecord) err
 	return nil
 }
 
-func (r diskAttachmentRecords) Delete(diskID string) error {
-	return r.store.DeleteOne(diskID + diskAttachmentRecordsSuffix)
+func (r diskAttachmentRecords) Delete(cid apiv1.DiskCID) error {
+	return r.store.DeleteOne(cid.AsString() + diskAttachmentRecordsSuffix)
 }

@@ -5,12 +5,13 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	apiv1 "github.com/cppforlife/bosh-cpi-go/apiv1"
 
 	"github.com/cppforlife/bosh-virtualbox-cpi/driver"
 )
 
 type DiskImpl struct {
-	id   string
+	cid  apiv1.DiskCID
 	path string
 
 	runner driver.Runner
@@ -18,15 +19,15 @@ type DiskImpl struct {
 }
 
 func NewDiskImpl(
-	id string,
+	cid apiv1.DiskCID,
 	path string,
 	runner driver.Runner,
 	logger boshlog.Logger,
 ) DiskImpl {
-	return DiskImpl{id: id, path: path, runner: runner, logger: logger}
+	return DiskImpl{cid, path, runner, logger}
 }
 
-func (d DiskImpl) ID() string { return d.id }
+func (d DiskImpl) ID() apiv1.DiskCID { return d.cid }
 
 func (d DiskImpl) Path() string { return d.path }
 

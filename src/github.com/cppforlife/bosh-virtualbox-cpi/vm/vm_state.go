@@ -15,7 +15,7 @@ var (
 )
 
 func (vm VMImpl) Exists() (bool, error) {
-	output, err := vm.driver.Execute("showvminfo", vm.id, "--machinereadable")
+	output, err := vm.driver.Execute("showvminfo", vm.cid.AsString(), "--machinereadable")
 	if err != nil {
 		if vm.driver.IsMissingVMErr(output) {
 			return false, nil
@@ -33,7 +33,7 @@ func (vm VMImpl) Start(gui bool) error {
 	}
 
 	output, err := vm.driver.ExecuteComplex(
-		[]string{"startvm", vm.id, "--type", mode},
+		[]string{"startvm", vm.cid.AsString(), "--type", mode},
 		driver.ExecuteOpts{IgnoreNonZeroExitStatus: true},
 	)
 	if err != nil && !vmStarted.MatchString(output) {
@@ -59,7 +59,7 @@ func (vm VMImpl) HaltIfRunning() error {
 	}
 
 	if running {
-		_, err = vm.driver.Execute("controlvm", vm.id, "poweroff")
+		_, err = vm.driver.Execute("controlvm", vm.cid.AsString(), "poweroff")
 	}
 
 	return err
@@ -75,7 +75,7 @@ func (vm VMImpl) IsRunning() (bool, error) {
 }
 
 func (vm VMImpl) State() (string, error) {
-	output, err := vm.driver.Execute("showvminfo", vm.id, "--machinereadable")
+	output, err := vm.driver.Execute("showvminfo", vm.cid.AsString(), "--machinereadable")
 	if err != nil {
 		if vm.driver.IsMissingVMErr(output) {
 			return "missing", nil

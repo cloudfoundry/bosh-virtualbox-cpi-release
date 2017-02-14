@@ -3,12 +3,14 @@ package portdevices
 import (
 	"fmt"
 
+	apiv1 "github.com/cppforlife/bosh-cpi-go/apiv1"
+
 	"github.com/cppforlife/bosh-virtualbox-cpi/driver"
 )
 
 type PortDevice struct {
 	driver driver.Driver
-	vmID   string
+	vmCID  apiv1.VMCID
 
 	controller string // e.g. scsi, ide
 	name       string // e.g. IDE, SCSI Controller
@@ -17,10 +19,7 @@ type PortDevice struct {
 	device string
 }
 
-func NewPortDevice(driver driver.Driver, vmID, controller, name, port, device string) PortDevice {
-	if len(vmID) == 0 {
-		panic("Internal inconsistency: PD's vmID must not be empty")
-	}
+func NewPortDevice(driver driver.Driver, vmCID apiv1.VMCID, controller, name, port, device string) PortDevice {
 	if len(controller) == 0 {
 		panic("Internal inconsistency: PD's controller must not be empty")
 	}
@@ -35,7 +34,7 @@ func NewPortDevice(driver driver.Driver, vmID, controller, name, port, device st
 	}
 	return PortDevice{
 		driver: driver,
-		vmID:   vmID,
+		vmCID:  vmCID,
 
 		controller: controller,
 		name:       name,
@@ -77,7 +76,7 @@ func (d PortDevice) Hint() interface{} {
 
 func (d PortDevice) Attach(path string) error {
 	_, err := d.driver.Execute(
-		"storageattach", d.vmID,
+		"storageattach", d.vmCID.AsString(),
 		"--storagectl", d.name,
 		"--port", d.port,
 		"--device", d.device,
@@ -90,7 +89,7 @@ func (d PortDevice) Attach(path string) error {
 
 func (d PortDevice) Detach() error {
 	_, err := d.driver.Execute(
-		"storageattach", d.vmID,
+		"storageattach", d.vmCID.AsString(),
 		"--storagectl", d.name,
 		"--port", d.port,
 		"--device", d.device,

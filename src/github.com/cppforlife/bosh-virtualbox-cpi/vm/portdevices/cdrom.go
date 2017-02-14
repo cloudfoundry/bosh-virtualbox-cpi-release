@@ -1,12 +1,14 @@
 package portdevices
 
 import (
+	apiv1 "github.com/cppforlife/bosh-cpi-go/apiv1"
+
 	"github.com/cppforlife/bosh-virtualbox-cpi/driver"
 )
 
 type CDROM struct {
 	driver driver.Driver
-	vmID   string
+	vmCID  apiv1.VMCID
 
 	name string // e.g. IDE Controller
 
@@ -16,7 +18,7 @@ type CDROM struct {
 
 func (cd CDROM) Mount(isoPath string) error {
 	_, err := cd.driver.Execute(
-		"storageattach", cd.vmID,
+		"storageattach", cd.vmCID.AsString(),
 		"--storagectl", cd.name,
 		"--port", cd.port,
 		"--device", cd.device,
@@ -28,7 +30,7 @@ func (cd CDROM) Mount(isoPath string) error {
 
 func (cd CDROM) Unmount() error {
 	_, err := cd.driver.Execute(
-		"storageattach", cd.vmID,
+		"storageattach", cd.vmCID.AsString(),
 		"--storagectl", cd.name,
 		"--port", cd.port,
 		"--device", cd.device,
