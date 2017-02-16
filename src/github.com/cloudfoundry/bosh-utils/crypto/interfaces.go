@@ -1,24 +1,31 @@
 package crypto
 
-import "io"
+import (
+	"io"
 
-type DigestProvider interface {
-	CreateFromStream(reader io.Reader, algorithm DigestAlgorithm) (Digest, error)
-}
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	"os"
+)
 
 type Digest interface {
-	VerifyingDigest
-
-	Algorithm() DigestAlgorithm
-	Digest() string
+	Verify(io.Reader) error
+	VerifyFilePath(filePath string, fs boshsys.FileSystem) error
+	Algorithm() Algorithm
 	String() string
-	Compare(Digest) int // comparing two digests against one another to see which is stronger (e.g SHA256 vs. SHA1)
 }
 
-type VerifyingDigest interface {
-	Verify(Digest) error
+//go:generate counterfeiter . ArchiveDigestFilePathReader
+type ArchiveDigestFilePathReader interface {
+	OpenFile(path string, flag int, perm os.FileMode) (boshsys.File, error)
 }
 
-type MultipleDigest interface {
-	Digests() []Digest
+var _ Digest = digestImpl{}
+var _ Digest = MultipleDigest{}
+
+type Algorithm interface {
+	CreateDigest(io.Reader) (Digest, error)
+	Name() string
 }
+
+var _ Algorithm = algorithmSHAImpl{}
+var _ Algorithm = unknownAlgorithmImpl{}
