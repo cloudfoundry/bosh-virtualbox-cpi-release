@@ -2,6 +2,7 @@ package vm
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -48,7 +49,32 @@ func (vm VMImpl) SetProps(props VMProps) error {
 		// Using minimal paravirtualization provider to avoid CPU lockups
 		"--paravirtprovider", props.ParavirtProvider,
 	)
-	return err
+	if err != nil {
+		return err
+	}
+
+	for index, folder := range props.SharedFolders {
+		name := fmt.Sprintf("folder-%d", index)
+
+		_, err := vm.driver.Execute(
+			"setextradata", vm.cid.AsString(),
+			"VBoxInternal2/SharedFoldersEnableSymlinksCreate/"+name, "1",
+		)
+		if err != nil {
+			return err
+		}
+
+		_, err = vm.driver.Execute(
+			"sharedfolder", "add", vm.cid.AsString(),
+			"--name", name,
+			"--hostpath", folder.HostPath,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (vm VMImpl) SetMetadata(meta apiv1.VMMeta) error {
