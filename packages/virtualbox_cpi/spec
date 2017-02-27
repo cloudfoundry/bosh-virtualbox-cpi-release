@@ -6,6 +6,7 @@ dependencies:
 
 files:
 - "**/*.go"
+- "**/*.h"
 - "**/*.s"
 
 excluded_files:
