@@ -1,0 +1,14 @@
+---
+name: guest-additions
+
+templates:
+  pre-start: bin/pre-start
+
+packages: []
+
+properties:
+  shared_folders:
+    description: A list of shared folders
+    example:
+      - guest_path: /any/path/here
+    default: []

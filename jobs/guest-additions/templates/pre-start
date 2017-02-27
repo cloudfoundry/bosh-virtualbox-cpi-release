@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -e
+
+apt-get -y update
+apt-get -y install virtualbox-guest-utils-lts-xenial
+service virtualbox-guest-utils-lts-xenial start
+
+<% p("shared_folders").each_with_index do |folder, i| %>
+  mkdir -p                             "<%= folder.fetch("guest_path") %>"
+  mount -t vboxsf folder-<%= i.to_s %> "<%= folder.fetch("guest_path") %>"
+<% end %>
