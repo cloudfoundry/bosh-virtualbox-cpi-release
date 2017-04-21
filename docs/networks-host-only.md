@@ -16,8 +16,8 @@ $ ifconfig
 _...other entries..._
 vboxnet0: flags=8843<UP,BROADCAST,RUNNING,SIMPLEX,MULTICAST> mtu 1500
 	ether 0a:00:27:00:00:00
-	inet 192.168.56.1 netmask 0xffffff00 broadcast 192.168.56.255
+	inet 192.168.50.1 netmask 0xffffff00 broadcast 192.168.50.255
 
 ```
 
-Finally, make sure you can ping the IP address `192.168.56.1`.
+Finally, make sure you can ping the IP address `192.168.50.1`.
