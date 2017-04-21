@@ -16,6 +16,9 @@ IPv6 Enabled:   Yes
 IPv6 Prefix:    fd17:625c:f037:2::/64
 DHCP Enabled:   Yes
 Enabled:        Yes
+Port-forwarding (ipv4)
+        ssh1:tcp:[127.0.0.1]:1234:[10.0.2.15]:22
+        ssh2:tcp:[127.0.0.1]:2345:[10.0.2.4]:22
 loopback mappings (ipv4)
         127.0.0.1=2
 

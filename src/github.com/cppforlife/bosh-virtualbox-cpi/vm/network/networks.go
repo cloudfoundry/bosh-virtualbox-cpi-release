@@ -53,7 +53,7 @@ func (n Networks) NATNetworks() ([]Network, error) {
 		net := NATNetwork{driver: n.driver}
 
 		for _, line := range strings.Split(netChunk, "\n") {
-			if strings.Contains(line, "loopback mappings") {
+			if strings.Contains(line, "loopback mappings") || strings.Contains(line, "Port-forwarding") {
 				break
 			}
 
