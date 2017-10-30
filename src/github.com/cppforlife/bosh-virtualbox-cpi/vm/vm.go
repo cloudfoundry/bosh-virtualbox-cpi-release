@@ -46,6 +46,8 @@ func (vm VMImpl) SetProps(props VMProps) error {
 		"--name", vm.cid.AsString(),
 		"--memory", strconv.Itoa(props.Memory),
 		"--cpus", strconv.Itoa(props.CPUs),
+		"--uart1", "0x3F8", "4",
+		"--uartmode1", "file", "/tmp/vboxcpi.log",
 		// Using minimal paravirtualization provider to avoid CPU lockups
 		"--paravirtprovider", props.ParavirtProvider,
 	)

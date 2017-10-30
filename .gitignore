@@ -21,6 +21,8 @@ Library
 
 src/bosh_virtualbox_cpi/vendor/cache/
 manifests/bosh-state.json
+tests/creds.yml
+tests/cpi
 
 /pkg
 /bin

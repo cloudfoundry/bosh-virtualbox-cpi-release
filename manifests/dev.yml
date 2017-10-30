@@ -1,0 +1,4 @@
+- type: replace
+  path: /releases/name=bosh-virtualbox-cpi/url
+  value: file://((virtualbox_cpi_path))
+
