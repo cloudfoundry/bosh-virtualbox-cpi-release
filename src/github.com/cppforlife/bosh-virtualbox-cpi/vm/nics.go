@@ -68,6 +68,9 @@ func (n NICs) addNIC(nic string, net Network, host Host) (string, error) {
 		}
 		args = append(args, []string{"hostonly", "--hostonlyadapter" + nic, actualNet.Name()}...)
 
+	case bnet.BridgedType:
+		args = append(args, []string{"bridged", "--bridgeadapter" + nic, net.CloudPropertyName()}...)
+
 	default:
 		return "", bosherr.Errorf("Unknown network type: %s", net.CloudPropertyType())
 	}
