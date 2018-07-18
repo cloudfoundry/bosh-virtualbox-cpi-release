@@ -1,6 +1,9 @@
-7bc7ab3 github.com/cloudfoundry/bosh-utils/.git
-f44a913 github.com/cppforlife/bosh-cpi-go/.git
-bb93381 github.com/onsi/ginkgo/.git
-c463cd2 github.com/onsi/gomega/.git
-453249f golang.org/x/crypto/.git
-a3f3340 gopkg.in/yaml.v2/.git
+081a897 github.com/cloudfoundry/bosh-utils/.git
+526823b github.com/cppforlife/bosh-cpi-go/.git
+a1dbeea github.com/hpcloud/tail/.git
+3774a09 github.com/onsi/ginkgo/.git
+b6ea1ea github.com/onsi/gomega/.git
+a214413 golang.org/x/crypto/.git
+8887df4 golang.org/x/net/.git
+0605a83 golang.org/x/text/.git
+5420a8b gopkg.in/yaml.v2/.git

@@ -1,11 +1,57 @@
 package apiv1_test
 
 import (
+	"encoding/json"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	. "github.com/cppforlife/bosh-cpi-go/apiv1"
 )
+
+var _ = Describe("Networks", func() {
+	var (
+		networks Networks
+	)
+
+	BeforeEach(func() {
+		networks = map[string]Network{}
+	})
+
+	Describe("MarshalJSON", func() {
+		It("marshals successfully", func() {
+			bytes := []byte(`{
+	      "fake-net-name1": {
+	        "type":    "fake-type",
+	        "ip":      "fake-ip",
+	        "netmask": "fake-netmask",
+	        "gateway": "fake-gateway",
+
+	        "dns":     ["fake-dns"],
+	        "default": ["fake-default"],
+
+	        "cloud_properties": {"fake-cp-key": "fake-cp-value"}
+	      },
+	      "fake-net-name2-no-ips": {
+	        "type":    "fake-type2",
+
+	        "dns":     ["fake-dns2"],
+	        "default": ["fake-default2"],
+
+	        "cloud_properties": {"fake-cp-key2": "fake-cp-value2"}
+	      }
+	    }`)
+
+			err := json.Unmarshal(bytes, &networks)
+			Expect(err).ToNot(HaveOccurred())
+
+			resultBytes, err := json.Marshal(networks)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(resultBytes).To(MatchJSON(bytes))
+		})
+	})
+})
 
 var _ = Describe("Network", func() {
 	var (
@@ -174,6 +220,15 @@ var _ = Describe("Network", func() {
 		It("returns 12.18.3.4/24 when IP is 12.18.3.4 and netmask is 255.255.255.0", func() {
 			net := NewNetwork(NetworkOpts{IP: "12.18.3.4", Netmask: "255.255.255.0"})
 			Expect(net.IPWithSubnetMask()).To(Equal("12.18.3.4/24"))
+		})
+
+		It("returns fd7e:964d:32c6:777c:0000:0000:0000:0006/64 when IP is "+
+			"fd7e:964d:32c6:777c:0000:0000:0000:0006 and netmask is ffff:ffff:ffff:ffff:0000:0000:0000:0000", func() {
+			net := NewNetwork(NetworkOpts{
+				IP:      "fd7e:964d:32c6:777c:0000:0000:0000:0006",
+				Netmask: "ffff:ffff:ffff:ffff:0000:0000:0000:0000",
+			})
+			Expect(net.IPWithSubnetMask()).To(Equal("fd7e:964d:32c6:777c:0000:0000:0000:0006/64"))
 		})
 	})
 })
