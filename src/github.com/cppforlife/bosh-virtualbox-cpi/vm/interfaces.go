@@ -34,7 +34,7 @@ type VM interface {
 	Delete() error
 
 	DiskIDs() ([]apiv1.DiskCID, error)
-	AttachDisk(bdisk.Disk) error
+	AttachDisk(bdisk.Disk) (apiv1.DiskHint, error)
 	AttachEphemeralDisk(bdisk.Disk) error
 	DetachDisk(bdisk.Disk) error
 }

@@ -42,22 +42,27 @@ func (a Disks) DeleteDisk(cid apiv1.DiskCID) error {
 }
 
 func (a Disks) AttachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) error {
+	_, err := a.AttachDiskV2(vmCID, diskCID)
+	return err
+}
+
+func (a Disks) AttachDiskV2(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) (apiv1.DiskHint, error) {
 	vm, err := a.vmFinder.Find(vmCID)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Finding VM '%s'", vmCID)
+		return apiv1.DiskHint{}, bosherr.WrapErrorf(err, "Finding VM '%s'", vmCID)
 	}
 
 	disk, err := a.finder.Find(diskCID)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Finding disk '%s'", diskCID)
+		return apiv1.DiskHint{}, bosherr.WrapErrorf(err, "Finding disk '%s'", diskCID)
 	}
 
-	err = vm.AttachDisk(disk)
+	hint, err := vm.AttachDisk(disk)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Attaching disk '%s' to VM '%s'", diskCID, vmCID)
+		return apiv1.DiskHint{}, bosherr.WrapErrorf(err, "Attaching disk '%s' to VM '%s'", diskCID, vmCID)
 	}
 
-	return nil
+	return hint, nil
 }
 
 func (a Disks) DetachDisk(vmCID apiv1.VMCID, diskCID apiv1.DiskCID) error {
@@ -86,4 +91,12 @@ func (a Disks) HasDisk(cid apiv1.DiskCID) (bool, error) {
 	}
 
 	return disk.Exists()
+}
+
+func (a Disks) SetDiskMetadata(cid apiv1.DiskCID, meta apiv1.DiskMeta) error {
+	return nil
+}
+
+func (a Disks) ResizeDisk(cid apiv1.DiskCID, size int) error {
+	return nil
 }

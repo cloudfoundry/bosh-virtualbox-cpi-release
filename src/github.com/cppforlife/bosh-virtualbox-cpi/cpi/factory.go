@@ -29,6 +29,7 @@ type CPI struct {
 	Stemcells
 	VMs
 	Disks
+	Snapshots
 }
 
 var _ apiv1.CPI = CPI{}
@@ -44,7 +45,7 @@ func NewFactory(
 	return Factory{fs, cmdRunner, uuidGen, compressor, opts, logger}
 }
 
-func (f Factory) New(_ apiv1.CallContext) (apiv1.CPI, error) {
+func (f Factory) New(ctx apiv1.CallContext) (apiv1.CPI, error) {
 	retrier := driver.RetrierImpl{}
 	rawRunner := driver.RawRunner(driver.NewLocalRunner(f.fs, f.cmdRunner, f.logger))
 
@@ -76,12 +77,15 @@ func (f Factory) New(_ apiv1.CallContext) (apiv1.CPI, error) {
 		AutoEnableNetworks: f.opts.AutoEnableNetworks,
 	}
 
-	vms := bvm.NewFactory(vmsOpts, f.uuidGen, driver, runner, disks, f.opts.Agent, f.logger)
+	vms := bvm.NewFactory(
+		vmsOpts, f.uuidGen, driver, runner, disks,
+		f.opts.Agent, apiv1.NewStemcellAPIVersion(ctx), f.logger)
 
 	return CPI{
 		NewMisc(),
 		NewStemcells(stemcells, stemcells),
 		NewVMs(stemcells, vms, vms),
 		NewDisks(disks, disks, vms),
+		NewSnapshots(),
 	}, nil
 }

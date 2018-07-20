@@ -30,24 +30,25 @@ func (vm VMImpl) DiskIDs() ([]apiv1.DiskCID, error) {
 	return persistentIDs, nil
 }
 
-func (vm VMImpl) AttachDisk(disk bdisk.Disk) error {
+func (vm VMImpl) AttachDisk(disk bdisk.Disk) (apiv1.DiskHint, error) {
 	return vm.attachDisk(disk, false)
 }
 
 func (vm VMImpl) AttachEphemeralDisk(disk bdisk.Disk) error {
-	return vm.attachDisk(disk, true)
+	_, err := vm.attachDisk(disk, true)
+	return err
 }
 
-func (vm VMImpl) attachDisk(disk bdisk.Disk, ephemeral bool) error {
+func (vm VMImpl) attachDisk(disk bdisk.Disk, ephemeral bool) (apiv1.DiskHint, error) {
 	pd, err := vm.portDevices.FindAvailable()
 	if err != nil {
-		return err
+		return apiv1.DiskHint{}, err
 	}
 
 	// Actually attach the disk
 	err = vm.hotPlugIfNecessary(!ephemeral, func() error { return pd.Attach(disk.VMDKPath()) })
 	if err != nil {
-		return err
+		return apiv1.DiskHint{}, err
 	}
 
 	rec := diskAttachmentRecord{
@@ -61,23 +62,35 @@ func (vm VMImpl) attachDisk(disk bdisk.Disk, ephemeral bool) error {
 
 	err = diskAttachmentRecords{vm.store}.Save(disk.ID(), rec)
 	if err != nil {
-		return err
+		return apiv1.DiskHint{}, err
 	}
 
-	agentUpdateFunc := func(agentEnv apiv1.AgentEnv) {
-		if ephemeral {
-			agentEnv.AttachEphemeralDisk(pd.Hint())
-		} else {
-			agentEnv.AttachPersistentDisk(disk.ID(), pd.Hint())
-		}
-	}
-
-	err = vm.reconfigureAgent(!ephemeral, agentUpdateFunc)
+	stemVer, err := vm.stemcellAPIVersion.Value()
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Reconfiguring agent after attaching disk")
+		return apiv1.DiskHint{}, bosherr.WrapErrorf(err, "Obtaining stemcell API version")
 	}
 
-	return nil
+	// Update agent env for stemcells that do not support mount_diskV2
+	if ephemeral || stemVer < 2 {
+		vm.logger.Debug("VMImpl", "Reconfiguring agent")
+
+		agentUpdateFunc := func(agentEnv apiv1.AgentEnv) {
+			if ephemeral {
+				agentEnv.AttachEphemeralDisk(pd.Hint())
+			} else {
+				agentEnv.AttachPersistentDisk(disk.ID(), pd.Hint())
+			}
+		}
+
+		err = vm.reconfigureAgent(!ephemeral, agentUpdateFunc)
+		if err != nil {
+			return apiv1.DiskHint{}, bosherr.WrapErrorf(err, "Reconfiguring agent after attaching disk")
+		}
+	} else {
+		vm.logger.Debug("VMImpl", "Skipping agent reconfiguration")
+	}
+
+	return pd.Hint(), nil
 }
 
 func (vm VMImpl) DetachDisk(disk bdisk.Disk) error {

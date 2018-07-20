@@ -21,19 +21,28 @@ func NewVMs(stemcellFinder bstem.Finder, creator bvm.Creator, finder bvm.Finder)
 func (a VMs) CreateVM(
 	agentID apiv1.AgentID, stemcellCID apiv1.StemcellCID,
 	cloudProps apiv1.VMCloudProps, networks apiv1.Networks,
-	_ []apiv1.DiskCID, env apiv1.VMEnv) (apiv1.VMCID, error) {
+	diskCIDs []apiv1.DiskCID, env apiv1.VMEnv) (apiv1.VMCID, error) {
+
+	cid, _, err := a.CreateVMV2(agentID, stemcellCID, cloudProps, networks, diskCIDs, env)
+	return cid, err
+}
+
+func (a VMs) CreateVMV2(
+	agentID apiv1.AgentID, stemcellCID apiv1.StemcellCID,
+	cloudProps apiv1.VMCloudProps, networks apiv1.Networks,
+	_ []apiv1.DiskCID, env apiv1.VMEnv) (apiv1.VMCID, apiv1.Networks, error) {
 
 	stemcell, err := a.stemcellFinder.Find(stemcellCID)
 	if err != nil {
-		return apiv1.VMCID{}, bosherr.WrapErrorf(err, "Finding stemcell '%s'", stemcellCID)
+		return apiv1.VMCID{}, networks, bosherr.WrapErrorf(err, "Finding stemcell '%s'", stemcellCID)
 	}
 
 	vm, err := a.creator.Create(agentID, stemcell, cloudProps, networks, env)
 	if err != nil {
-		return apiv1.VMCID{}, bosherr.WrapErrorf(err, "Creating VM with agent ID '%s'", agentID)
+		return apiv1.VMCID{}, networks, bosherr.WrapErrorf(err, "Creating VM with agent ID '%s'", agentID)
 	}
 
-	return vm.ID(), nil
+	return vm.ID(), networks, nil
 }
 
 func (a VMs) DeleteVM(cid apiv1.VMCID) error {
@@ -84,4 +93,12 @@ func (a VMs) GetDisks(cid apiv1.VMCID) ([]apiv1.DiskCID, error) {
 	}
 
 	return vm.DiskIDs()
+}
+
+func (a VMs) CalculateVMCloudProperties(res apiv1.VMResources) (apiv1.VMCloudProps, error) {
+	return apiv1.NewVMCloudPropsFromMap(map[string]interface{}{
+		"memory":         res.RAM,
+		"cpus":           res.CPU,
+		"ephemeral_disk": res.EphemeralDiskSize,
+	}), nil
 }

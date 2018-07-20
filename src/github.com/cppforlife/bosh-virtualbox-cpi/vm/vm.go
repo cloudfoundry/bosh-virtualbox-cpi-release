@@ -18,6 +18,8 @@ type VMImpl struct {
 	portDevices bpds.PortDevices
 	store       Store
 
+	stemcellAPIVersion apiv1.StemcellAPIVersion
+
 	driver driver.Driver
 	logger boshlog.Logger
 }
@@ -26,15 +28,17 @@ func NewVMImpl(
 	cid apiv1.VMCID,
 	portDevices bpds.PortDevices,
 	store Store,
+	stemcellAPIVersion apiv1.StemcellAPIVersion,
 	driver driver.Driver,
 	logger boshlog.Logger,
 ) VMImpl {
 	return VMImpl{
-		cid:         cid,
-		portDevices: portDevices,
-		store:       store,
-		driver:      driver,
-		logger:      logger,
+		cid:                cid,
+		portDevices:        portDevices,
+		store:              store,
+		stemcellAPIVersion: stemcellAPIVersion,
+		driver:             driver,
+		logger:             logger,
 	}
 }
 

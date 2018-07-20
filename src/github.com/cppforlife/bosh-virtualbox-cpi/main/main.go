@@ -48,7 +48,7 @@ func main() {
 }
 
 func basicDeps() (boshlog.Logger, boshsys.FileSystem, boshsys.CmdRunner, boshuuid.Generator) {
-	logger := boshlog.NewWriterLogger(boshlog.LevelDebug, os.Stderr, os.Stderr)
+	logger := boshlog.NewWriterLogger(boshlog.LevelDebug, os.Stderr)
 	fs := boshsys.NewOsFileSystem(logger)
 	cmdRunner := boshsys.NewExecCmdRunner(logger)
 	uuidGen := boshuuid.NewGenerator()

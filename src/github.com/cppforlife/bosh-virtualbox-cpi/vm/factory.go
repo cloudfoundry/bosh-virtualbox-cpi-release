@@ -29,7 +29,8 @@ type Factory struct {
 	runner      driver.Runner
 	diskFactory bdisk.Factory
 
-	agentOptions apiv1.AgentOptions
+	agentOptions       apiv1.AgentOptions
+	stemcellAPIVersion apiv1.StemcellAPIVersion
 
 	logTag string
 	logger boshlog.Logger
@@ -42,6 +43,7 @@ func NewFactory(
 	runner driver.Runner,
 	diskFactory bdisk.Factory,
 	agentOptions apiv1.AgentOptions,
+	stemcellAPIVersion apiv1.StemcellAPIVersion,
 	logger boshlog.Logger,
 ) Factory {
 	return Factory{
@@ -52,7 +54,8 @@ func NewFactory(
 		runner:      runner,
 		diskFactory: diskFactory,
 
-		agentOptions: agentOptions,
+		agentOptions:       agentOptions,
+		stemcellAPIVersion: stemcellAPIVersion,
 
 		logTag: "vm.Factory",
 		logger: logger,
@@ -106,7 +109,7 @@ func (f Factory) Create(
 	initialAgentEnv := apiv1.NewAgentEnvFactory().ForVM(
 		agentID, vm.ID(), vmNetworks.AsNetworks(), env, f.agentOptions)
 
-	initialAgentEnv.AttachSystemDisk("0")
+	initialAgentEnv.AttachSystemDisk(apiv1.NewDiskHintFromString("0"))
 
 	err = vm.ConfigureAgent(initialAgentEnv)
 	if err != nil {
@@ -146,7 +149,7 @@ func (f Factory) newVM(cid apiv1.VMCID) VMImpl {
 	pdsOpts := bpds.PortDevicesOpts{Controller: f.opts.StorageController}
 	portDevices := bpds.NewPortDevices(cid, pdsOpts, f.driver, f.logger)
 	store := NewStore(filepath.Join(f.opts.DirPath, cid.AsString()), f.runner)
-	return NewVMImpl(cid, portDevices, store, f.driver, f.logger)
+	return NewVMImpl(cid, portDevices, store, f.stemcellAPIVersion, f.driver, f.logger)
 }
 
 func (f Factory) Find(cid apiv1.VMCID) (VM, error) {

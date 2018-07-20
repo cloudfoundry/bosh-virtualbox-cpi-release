@@ -49,25 +49,25 @@ func (d PortDevice) Controller() string { return d.controller }
 func (d PortDevice) Port() string   { return d.port }
 func (d PortDevice) Device() string { return d.device }
 
-func (d PortDevice) Hint() interface{} {
+func (d PortDevice) Hint() apiv1.DiskHint {
 	switch d.controller {
 	case IDEController:
 		switch {
 		case d.port == "0": // Assume system disk is 0
-			return d.device
+			return apiv1.NewDiskHintFromString(d.device)
 		default:
 			// todo unsafe disk selection!
 			// todo does not work on reboot
 			// Ideally will specify scsi_host_no in addition to scsi_id
 			// (https://www.ibm.com/support/knowledgecenter/linuxonibm/com.ibm.linux.z.lgdd/lgdd_t_fcp_wrk_uinfo.html)
-			return map[string]string{"id": "1ATA"}
+			return apiv1.NewDiskHintFromMap(map[string]interface{}{"id": "1ATA"})
 		}
 
 	case SCSIController:
 		// Assumes that all ports are connected to the root disk device
 		// given how current bosh-agent tries to find disks
 		// todo ideally specify port & device (unrelated to root disk)
-		return d.port
+		return apiv1.NewDiskHintFromString(d.port)
 
 	default:
 		panic(fmt.Sprintf("Unexpected storage controller '%s'", d.name))
