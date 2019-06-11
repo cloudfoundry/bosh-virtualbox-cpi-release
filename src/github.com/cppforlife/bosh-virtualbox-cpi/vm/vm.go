@@ -52,6 +52,7 @@ func (vm VMImpl) SetProps(props VMProps) error {
 		"--cpus", strconv.Itoa(props.CPUs),
 		// Using minimal paravirtualization provider to avoid CPU lockups
 		"--paravirtprovider", props.ParavirtProvider,
+		"--audio", props.Audio,
 	)
 	if err != nil {
 		return err

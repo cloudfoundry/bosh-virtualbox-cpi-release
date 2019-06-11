@@ -23,9 +23,10 @@ type VMCloudProps interface {
 }
 
 type VMResources struct {
-	RAM               int `json:"ram"`
-	CPU               int `json:"cpu"`
-	EphemeralDiskSize int `json:"ephemeral_disk_size"`
+	RAM               int    `json:"ram"`
+	CPU               int    `json:"cpu"`
+	EphemeralDiskSize int    `json:"ephemeral_disk_size"`
+	Audio             string `json:"audio"`
 }
 
 type VMCID struct {

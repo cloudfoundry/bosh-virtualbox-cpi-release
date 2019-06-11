@@ -13,7 +13,8 @@ type SharedFolder struct {
 type VMProps struct {
 	Memory        int
 	CPUs          int
-	EphemeralDisk int `json:"ephemeral_disk"`
+	EphemeralDisk int    `json:"ephemeral_disk"`
+	Audio         string `json:"audio"`
 
 	GUI              bool
 	ParavirtProvider string `json:"paravirtprovider"`
@@ -26,6 +27,7 @@ func NewVMProps(props apiv1.VMCloudProps) (VMProps, error) {
 		Memory:        512,
 		CPUs:          1,
 		EphemeralDisk: 5000,
+		Audio:         "none",
 
 		ParavirtProvider: "minimal", // KVM caused CPU lockups with 4+ kernel
 	}
