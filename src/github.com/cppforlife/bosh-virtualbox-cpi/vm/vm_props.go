@@ -29,7 +29,7 @@ func NewVMProps(props apiv1.VMCloudProps) (VMProps, error) {
 		EphemeralDisk: 5000,
 		Audio:         "none",
 
-		ParavirtProvider: "minimal", // KVM caused CPU lockups with 4+ kernel
+		ParavirtProvider: "default", // Let vboxmanage decide which paravirtprovider to use
 	}
 
 	err := props.As(&vmProps)
