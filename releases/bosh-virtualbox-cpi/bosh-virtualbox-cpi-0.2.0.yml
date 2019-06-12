@@ -1,0 +1,38 @@
+name: bosh-virtualbox-cpi
+version: 0.2.0
+commit_hash: 4addaae
+uncommitted_changes: false
+jobs:
+- name: guest-additions
+  version: cbcfdc1cfbeff5cf732e6fd837ff9256c2d61edc5c744c6582d2dc45662dbda2
+  fingerprint: cbcfdc1cfbeff5cf732e6fd837ff9256c2d61edc5c744c6582d2dc45662dbda2
+  sha1: sha256:82f23e1624526dcafc2187ce8bb2d9353689b7093c5acd29095e9d4099cb7595
+  packages: []
+- name: virtualbox_cpi
+  version: 2731ca5d4ee8d38be84811bbcd6d2ff0a6f3f9ec841fe9312046b825e638ffa6
+  fingerprint: 2731ca5d4ee8d38be84811bbcd6d2ff0a6f3f9ec841fe9312046b825e638ffa6
+  sha1: sha256:0353b9d1a9ab17951d1dec4c1206fdecbd1cdc8188b8222a7ddd79d2e7f512c9
+  packages:
+  - virtualbox_cpi
+packages:
+- name: golang-1.10-darwin
+  version: 9eacb8fc6b1b693e4280be4e916e2000f375bfbf
+  fingerprint: 9eacb8fc6b1b693e4280be4e916e2000f375bfbf
+  sha1: d96a4f8d67be5c351e489e213d8ae789296b6c71
+  dependencies: []
+- name: golang-1.10-linux
+  version: 48c842421b6f05acf88dc6ec17f7574dade28a86
+  fingerprint: 48c842421b6f05acf88dc6ec17f7574dade28a86
+  sha1: e9a18aebf2c407ce17423c22c913b6612cf4b75f
+  dependencies: []
+- name: virtualbox_cpi
+  version: d1afc1d3d84df8397bc48d3ef9d261fd21f1ffd17d3b02161bc427e948d4ad0e
+  fingerprint: d1afc1d3d84df8397bc48d3ef9d261fd21f1ffd17d3b02161bc427e948d4ad0e
+  sha1: sha256:0335d18762f5a7696c532125fd596339b1371a64cf6508d820b900e209e88b3a
+  dependencies:
+  - golang-1.10-darwin
+  - golang-1.10-linux
+license:
+  version: 27e0052c476b6931b771123409be32c57b36d691a7d118866ef0a0a340b19d72
+  fingerprint: 27e0052c476b6931b771123409be32c57b36d691a7d118866ef0a0a340b19d72
+  sha1: sha256:c90233b6093b947748daf397fb734cbcd3fe510decf3c6f3541728619036c6b0
