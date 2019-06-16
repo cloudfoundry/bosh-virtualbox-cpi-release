@@ -13,6 +13,7 @@ import (
 var (
 	testSSHRunnerUsername   = os.Getenv("TEST_SSH_RUNNER_USERNAME")
 	testSSHRunnerPrivateKey = os.Getenv("TEST_SSH_RUNNER_PRIVATE_KEY")
+	testSSHRunnerHost       = os.Getenv("TEST_SSH_RUNNER_HOST")
 )
 
 var _ = Describe("SSHRunner", func() {
@@ -20,12 +21,15 @@ var _ = Describe("SSHRunner", func() {
 		if len(testSSHRunnerUsername) == 0 {
 			Skip("SSHRunner tests are not configured")
 		}
+		if testSSHRunnerHost == "" {
+			testSSHRunnerHost = "127.0.0.1"
+		}
 	})
 
 	Describe("HomeDir", func() {
 		It("returns proper home directory", func() {
 			opts := SSHRunnerOpts{
-				Host:       "127.0.0.1",
+				Host:       testSSHRunnerHost,
 				Username:   testSSHRunnerUsername,
 				PrivateKey: testSSHRunnerPrivateKey,
 			}

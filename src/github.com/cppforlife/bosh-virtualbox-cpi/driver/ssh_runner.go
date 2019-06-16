@@ -166,8 +166,9 @@ func (r *SSHRunner) client() (*ssh.Client, error) {
 	}
 
 	config := &ssh.ClientConfig{
-		User: r.opts.Username,
-		Auth: []ssh.AuthMethod{ssh.PublicKeys(keySigner)},
+		User:            r.opts.Username,
+		Auth:            []ssh.AuthMethod{ssh.PublicKeys(keySigner)},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 
 	r.existingClient, err = ssh.Dial("tcp", fmt.Sprintf("%s:22", r.opts.Host), config)
