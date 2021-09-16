@@ -1,25 +1,32 @@
 set -e -x
 
 if [ -z "$BOSH_PACKAGES_DIR" ]; then
-	pkg_dir=$(readlink -nf /var/vcap/packages/golang-1.10-darwin)
+	pkg_dir=$(readlink -nf /var/vcap/packages/golang-1.16-darwin)
 else
-	pkg_dir=$BOSH_PACKAGES_DIR/golang-1.10-darwin
+	pkg_dir=$BOSH_PACKAGES_DIR/golang-1.16-darwin
 fi
 
 source ${pkg_dir}/bosh/compile.env.generic
 
-mkdir ../src && cp -a * ../src/ && mv ../src ./src
+# Since HOME is not set we must set GOPATH and GOCACHE
+mkdir -p /tmp/go/.cache
+export GOPATH=/tmp/go
+export GOCACHE=${GOPATH}/.cache
 
-mkdir -p $BOSH_INSTALL_TARGET/bin
+
+cd ${BOSH_COMPILE_TARGET}/bosh-virtualbox-cpi
+mkdir -p ${BOSH_INSTALL_TARGET}/bin
+
+export CGO_ENABLED=0
 
 export GOARCH=amd64
 export GOOS=darwin
 export GOTOOLDIR=$GOROOT/pkg/darwin_amd64
 
-go build -o $BOSH_INSTALL_TARGET/bin/cpi-darwin src/github.com/cppforlife/bosh-virtualbox-cpi/main/*.go
+go build -mod=vendor -o $BOSH_INSTALL_TARGET/bin/cpi-darwin ./main/*.go
 
 export GOARCH=amd64
 export GOOS=linux
 export GOTOOLDIR=$GOROOT/pkg/linux_amd64
 
-go build -o $BOSH_INSTALL_TARGET/bin/cpi-linux src/github.com/cppforlife/bosh-virtualbox-cpi/main/*.go
+go build -mod=vendor -o $BOSH_INSTALL_TARGET/bin/cpi-linux ./main/*.go
