@@ -20,7 +20,7 @@ type PortDevice struct {
 	driver driver.Driver
 	vmCID  apiv1.VMCID
 
-	controller string // e.g. scsi, ide
+	controller string // e.g. scsi, ide, sata
 	name       string // e.g. IDE, SCSI, AHCI Controller
 
 	port   string
