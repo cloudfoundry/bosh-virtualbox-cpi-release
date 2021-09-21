@@ -141,6 +141,11 @@ func (f Factory) upload(imagePath, stemcellPath string) error {
 		if err != nil {
 			return bosherr.WrapError(err, "Switching root disk to IDE Controller")
 		}
+	case bpds.SATAController:
+		err = f.switchRootDiskToSATAController(tmpDir)
+		if err != nil {
+			return bosherr.WrapError(err, "Switching root disk to SATA Controller")
+		}
 	default: // scsi
 		// do nothing
 	}
@@ -172,6 +177,61 @@ func (f Factory) switchRootDiskToIDEController(tmpDir string) error {
 		// Parent=x references Item with InstanceID=x
 		contents = strings.Replace(
 			contents, "<rasd:Parent>3</rasd:Parent>", "<rasd:Parent>4</rasd:Parent>", 1)
+
+		afterSHA1 = fmt.Sprintf("%x", sha1.Sum([]byte(contents)))
+
+		err = f.fs.WriteFileString(ovfPath, contents)
+		if err != nil {
+			return err
+		}
+	}
+
+	{
+		mfPath := filepath.Join(tmpDir, "image.mf")
+
+		mfContents, err := f.fs.ReadFileString(mfPath)
+		if err != nil {
+			return err
+		}
+
+		mfContents = strings.Replace(mfContents, beforeSHA1, afterSHA1, 1)
+
+		err = f.fs.WriteFileString(mfPath, mfContents)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (f Factory) switchRootDiskToSATAController(tmpDir string) error {
+	var beforeSHA1, afterSHA1 string
+
+	{
+		ovfPath := filepath.Join(tmpDir, "image.ovf")
+
+		contents, err := f.fs.ReadFileString(ovfPath)
+		if err != nil {
+			return err
+		}
+
+		beforeSHA1 = fmt.Sprintf("%x", sha1.Sum([]byte(contents)))
+
+		// Sata controller example found here:
+		// https://communities.vmware.com/t5/ESXi-Discussions/How-to-add-SATA-controller-in-ESXi-5-5/m-p/935069/highlight/true#M80252
+
+		contents = strings.Replace(
+			contents, "<rasd:Parent>3</rasd:Parent>", "<rasd:Parent>4</rasd:Parent>", 1)
+
+		contents = strings.Replace(
+			contents, "<rasd:Description>IDE Controller</rasd:Description>", "<rasd:Description>SATA Controller</rasd:Description>", 1)
+
+		contents = strings.Replace(
+			contents, "<rasd:ElementName>ideController0</rasd:ElementName>", "<rasd:ElementName>sataController0</rasd:ElementName>", 1)
+
+		contents = strings.Replace(
+			contents, "<rasd:ResourceType>5</rasd:ResourceType>", "<rasd:ResourceSubType>AHCI</rasd:ResourceSubType><rasd:ResourceType>20</rasd:ResourceType>", 1)
 
 		afterSHA1 = fmt.Sprintf("%x", sha1.Sum([]byte(contents)))
 

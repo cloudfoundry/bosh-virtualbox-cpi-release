@@ -28,8 +28,8 @@ properties:
     default: "~/.bosh_virtualbox_cpi"
 
   storage_controller:
-    description: "For some reason IDE controller seems to be more reliable. Available: scsi or ide."
-    default: ide
+    description: "For some reason IDE controller seems to be more reliable. Available: scsi, ide or sata."
+    default: sata
   auto_enable_networks:
     description: "Automatically enabled necessary networks on first use."
     default: true

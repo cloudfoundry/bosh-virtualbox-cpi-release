@@ -19,6 +19,9 @@ var (
 	// Covers `storagecontrollername="IDE"` and `storagecontrollername0="IDE Controller"`
 	ideControllerName = regexp.MustCompile(`^storagecontrollername\d+="((?i:IDE).*)"$`)
 
+	// Covers `"storagecontrollername0="SATA"` and `storagecontrollername0="SATA Controller"`
+	sataControllerName = regexp.MustCompile(`^storagecontrollername\d+="((?i:SATA).*)"$`)
+
 	// Covers `SCSI-1-0"="none"` and `"SCSI Controller-1-0"="none"` (name-port-device)
 	portDeviceConfig = regexp.MustCompile(`^"(?:.+)-(\d+)-(\d+)"="none"$`)
 )
@@ -69,6 +72,8 @@ func (d PortDevices) Find(controller, port, device string) (PortDevice, error) {
 	switch controller {
 	case IDEController:
 		controllerNameMatch = ideControllerName
+	case SATAController:
+		controllerNameMatch = sataControllerName
 	case SCSIController, "":
 		controller = SCSIController
 		controllerNameMatch = scsiControllerName
@@ -92,6 +97,8 @@ func (d PortDevices) availablePDs() ([]PortDevice, error) {
 		controllerNameMatch = ideControllerName
 	case SCSIController:
 		controllerNameMatch = scsiControllerName
+	case SATAController:
+		controllerNameMatch = sataControllerName
 	default:
 		panic(fmt.Sprintf("Unexpected storage controller '%s'", d.opts.Controller))
 	}

@@ -43,7 +43,7 @@ func (o FactoryOpts) Validate() error {
 	}
 
 	switch o.StorageController {
-	case bpds.IDEController, bpds.SCSIController:
+	case bpds.IDEController, bpds.SCSIController, bpds.SATAController:
 		// valid
 	default:
 		return bosherr.Error("Unexpected StorageController")
