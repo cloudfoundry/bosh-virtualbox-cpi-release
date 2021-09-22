@@ -6,11 +6,11 @@ import (
 	"os"
 	"time"
 
+	"github.com/cloudfoundry/bosh-cpi-go/rpc"
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
-	"github.com/cppforlife/bosh-cpi-go/rpc"
 
 	"bosh-virtualbox-cpi/cpi"
 )

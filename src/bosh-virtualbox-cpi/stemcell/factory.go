@@ -13,7 +13,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
-	apiv1 "github.com/cppforlife/bosh-cpi-go/apiv1"
+	apiv1 "github.com/cloudfoundry/bosh-cpi-go/apiv1"
 
 	"bosh-virtualbox-cpi/driver"
 	bpds "bosh-virtualbox-cpi/vm/portdevices"

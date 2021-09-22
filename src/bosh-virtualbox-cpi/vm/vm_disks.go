@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	apiv1 "github.com/cppforlife/bosh-cpi-go/apiv1"
+	apiv1 "github.com/cloudfoundry/bosh-cpi-go/apiv1"
 
 	bdisk "bosh-virtualbox-cpi/disk"
 )

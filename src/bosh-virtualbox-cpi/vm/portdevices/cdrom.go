@@ -1,7 +1,7 @@
 package portdevices
 
 import (
-	apiv1 "github.com/cppforlife/bosh-cpi-go/apiv1"
+	apiv1 "github.com/cloudfoundry/bosh-cpi-go/apiv1"
 
 	"bosh-virtualbox-cpi/driver"
 )

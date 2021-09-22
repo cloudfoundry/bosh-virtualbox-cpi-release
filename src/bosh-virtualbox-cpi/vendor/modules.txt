@@ -2,17 +2,17 @@
 github.com/bmatcuk/doublestar
 # github.com/charlievieth/fs v0.0.1
 github.com/charlievieth/fs
-# github.com/cloudfoundry/bosh-utils v0.0.274
+# github.com/cloudfoundry/bosh-cpi-go v0.0.0-20210922163228-11695f69aeef
+## explicit
+github.com/cloudfoundry/bosh-cpi-go/apiv1
+github.com/cloudfoundry/bosh-cpi-go/rpc
+# github.com/cloudfoundry/bosh-utils v0.0.275
 ## explicit
 github.com/cloudfoundry/bosh-utils/errors
 github.com/cloudfoundry/bosh-utils/fileutil
 github.com/cloudfoundry/bosh-utils/logger
 github.com/cloudfoundry/bosh-utils/system
 github.com/cloudfoundry/bosh-utils/uuid
-# github.com/cppforlife/bosh-cpi-go v0.0.0-20180718174221-526823bbeafd
-## explicit
-github.com/cppforlife/bosh-cpi-go/apiv1
-github.com/cppforlife/bosh-cpi-go/rpc
 # github.com/fsnotify/fsnotify v1.5.1
 ## explicit
 github.com/fsnotify/fsnotify
@@ -69,12 +69,11 @@ golang.org/x/crypto/internal/poly1305
 golang.org/x/crypto/internal/subtle
 golang.org/x/crypto/ssh
 golang.org/x/crypto/ssh/internal/bcrypt_pbkdf
-# golang.org/x/net v0.0.0-20210908191846-a5e095526f91
+# golang.org/x/net v0.0.0-20210917221730-978cfadd31cf
 golang.org/x/net/html
 golang.org/x/net/html/atom
 golang.org/x/net/html/charset
-# golang.org/x/sys v0.0.0-20210915083310-ed5796bab164
-## explicit
+# golang.org/x/sys v0.0.0-20210917161153-d61c044b1678
 golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
