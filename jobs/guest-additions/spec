@@ -9,6 +9,6 @@ packages: []
 properties:
   shared_folders:
     description: A list of shared folders
+    default: []
     example:
       - guest_path: /any/path/here
-    default: []

@@ -11,8 +11,8 @@ packages:
 properties:
   host:
     description: Address where VirtualBox is running. If not set, assumes that VirtualBox CLI is accessible.
-    example: 192.168.50.1
     default: ""
+    example: 192.168.50.1
   username:
     description: Username to use when SSH-ing into machine that's running VirtualBox
     default: ubuntu
@@ -28,8 +28,8 @@ properties:
     default: "~/.bosh_virtualbox_cpi"
 
   storage_controller:
-    description: "For some reason IDE controller seems to be more reliable. Available: scsi or ide."
-    default: ide
+    description: "For VirtualBox 6.1+ only sata works. Available: scsi, ide or sata."
+    default: sata
   auto_enable_networks:
     description: "Automatically enabled necessary networks on first use."
     default: true
