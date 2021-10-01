@@ -5,7 +5,6 @@
 .final_builds/packages/**/*.tgz
 .idea
 .vagrant
-blobs
 config/dev.yml
 config/private.yml
 dev_releases
