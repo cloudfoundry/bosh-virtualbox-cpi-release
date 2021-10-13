@@ -102,6 +102,8 @@ func (n Networks) BridgedNetworks() ([]Network, error) {
 
 	for _, netChunk := range n.outputChunks(output) {
 		// TODO : this is semantically incorrect but behavior is the same
+		// because we never call mutating methods on the HostOnly when we
+		// have the bridgedNetworkAdapter
 		net := HostOnly{driver: n.driver}
 
 		for _, line := range strings.Split(netChunk, "\n") {
