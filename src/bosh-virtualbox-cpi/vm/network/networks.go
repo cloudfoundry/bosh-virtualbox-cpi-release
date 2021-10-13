@@ -92,6 +92,56 @@ func (n Networks) NATNetworks() ([]Network, error) {
 	return nets, nil
 }
 
+func (n Networks) BridgedNetworks() ([]Network, error) {
+	output, err := n.driver.Execute("list", "bridgedifs")
+	if err != nil {
+		return nil, err
+	}
+
+	var nets []Network
+
+	for _, netChunk := range n.outputChunks(output) {
+		// TODO : this is semantically incorrect but behavior is the same
+		net := HostOnly{driver: n.driver}
+
+		for _, line := range strings.Split(netChunk, "\n") {
+			matches := netKVMatch.FindStringSubmatch(line)
+			if len(matches) != 3 {
+				panic(fmt.Sprintf("Internal inconsistency: Expected len(%s matches) == 3: line '%s'", netKVMatch, line))
+			}
+
+			var err error
+
+			switch matches[1] {
+			// does not include all keys
+			case "Name":
+				net.name = matches[2]
+			case "DHCP":
+				net.dhcp, err = n.toBool(matches[2])
+			case "IPAddress":
+				net.ipAddress = matches[2]
+			case "NetworkMask":
+				net.networkMask = matches[2]
+			case "Status":
+				net.status = matches[2]
+			}
+
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		err := (&net).populateIPNet()
+		if err != nil {
+			return nil, err
+		}
+
+		nets = append(nets, net)
+	}
+
+	return nets, nil
+}
+
 func (n Networks) HostOnlys() ([]Network, error) {
 	output, err := n.driver.Execute("list", "hostonlyifs")
 	if err != nil {

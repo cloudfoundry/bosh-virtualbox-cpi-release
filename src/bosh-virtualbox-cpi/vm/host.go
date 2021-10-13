@@ -23,7 +23,7 @@ func (h Host) FindNetwork(net Network) (bnet.Network, error) {
 		return newHostNetwork(net, hostOnlysAdapter{h.networks}).Find()
 
 	case bnet.BridgedType:
-		return newHostNetwork(net, hostOnlysAdapter{h.networks}).Find()
+		return newHostNetwork(net, bridgedNetworksAdapter{h.networks}).Find()
 
 	default:
 		return nil, fmt.Errorf("Unknown network type: %s", net.CloudPropertyType())
@@ -199,6 +199,29 @@ func (n hostOnlysAdapter) Create(net Network) error {
 }
 
 func (n hostOnlysAdapter) Matches(net Network, actualNet bnet.Network) bool {
+	if len(net.CloudPropertyName()) > 0 {
+		return net.CloudPropertyName() == actualNet.Name()
+	}
+
+	actualIP := gonet.IP(actualNet.IPNet().IP).String()
+	actualNetmask := gonet.IP(actualNet.IPNet().Mask).String()
+
+	return actualNetmask == net.Netmask() && actualIP == net.Gateway()
+}
+
+type bridgedNetworksAdapter struct {
+	bnet.Networks
+}
+
+func (n bridgedNetworksAdapter) List() ([]bnet.Network, error) {
+	return n.BridgedNetworks()
+}
+
+func (n bridgedNetworksAdapter) Create(net Network) error {
+	return fmt.Errorf("Expected to find bridged network '%s'", net.CloudPropertyName())
+}
+
+func (n bridgedNetworksAdapter) Matches(net Network, actualNet bnet.Network) bool {
 	if len(net.CloudPropertyName()) > 0 {
 		return net.CloudPropertyName() == actualNet.Name()
 	}
