@@ -8,6 +8,7 @@ const (
 	NATType        = "nat"
 	NATNetworkType = "natnetwork"
 	HostOnlyType   = "hostonly"
+	BridgedType    = "bridged"
 )
 
 type Network interface {

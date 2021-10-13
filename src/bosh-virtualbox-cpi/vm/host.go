@@ -22,6 +22,9 @@ func (h Host) FindNetwork(net Network) (bnet.Network, error) {
 	case bnet.HostOnlyType:
 		return newHostNetwork(net, hostOnlysAdapter{h.networks}).Find()
 
+	case bnet.BridgedType:
+		return newHostNetwork(net, hostOnlysAdapter{h.networks}).Find()
+
 	default:
 		return nil, fmt.Errorf("Unknown network type: %s", net.CloudPropertyType())
 	}
@@ -44,6 +47,9 @@ func (h Host) EnableNetworks(nets Networks) error {
 			if err != nil {
 				return err
 			}
+
+		case bnet.BridgedType:
+			// do nothing
 
 		default:
 			return fmt.Errorf("Unknown network type: %s", net.CloudPropertyType())
