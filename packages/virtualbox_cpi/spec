@@ -2,8 +2,8 @@
 name: virtualbox_cpi
 
 dependencies:
-- golang-1.16-darwin
-- golang-1.16-linux
+- golang-1-darwin
+- golang-1-linux
 
 files:
 - "bosh-virtualbox-cpi/**/*.go"
