@@ -54,6 +54,8 @@ type NetworkSpec struct {
 
 	DNS     []string `json:"dns"`
 	Default []string `json:"default"`
+	Routes  []Route  `json:"routes"`
+	Alias   string   `json:"alias,omitempty"`
 
 	MAC string `json:"mac"`
 
