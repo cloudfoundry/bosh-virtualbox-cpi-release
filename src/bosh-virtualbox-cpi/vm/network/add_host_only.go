@@ -1,6 +1,7 @@
 package network
 
 import (
+	"bosh-virtualbox-cpi/driver"
 	"fmt"
 	"regexp"
 )
@@ -57,13 +58,17 @@ func (n Networks) configureHostOnly(name, gateway, netmask string) error {
 		args = append(args, "--dhcp")
 	}
 
-	_, err := n.driver.Execute(args...)
+	_, err := n.driver.ExecuteComplex(args, driver.ExecuteOpts{})
 
 	return err
 }
 
 func (n Networks) cleanUpPartialHostOnlyCreate(name string) {
-	_, err := n.driver.Execute("hostonlyif", "remove", name)
+	_, err := n.driver.ExecuteComplex([]string{
+		"hostonlyif",
+		"remove",
+		name,
+	}, driver.ExecuteOpts{})
 	if err != nil {
 		n.logger.Error("vm.network.Networks",
 			"Failed to clean up partially created host-only network '%s': %s", name, err)
