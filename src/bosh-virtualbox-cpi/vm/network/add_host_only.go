@@ -12,9 +12,9 @@ var (
 
 func (n Networks) AddHostOnly(name, gateway, netmask string) (bool, error) {
 	// VB does not allow naming host-only networks, exit if it's not the first one
-	if len(name) > 0 && name != "vboxnet0" {
-		return false, nil
-	}
+	// if len(name) > 0 && name != "vboxnet0" {
+	// 	return false, fmt.Errorf("VBoxNetwork does not have expected name, expected vboxnet0, received %s", name)
+	// }
 
 	createdName, err := n.createHostOnly()
 	if err != nil {
