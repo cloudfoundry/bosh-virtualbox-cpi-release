@@ -20,7 +20,7 @@ agent_params = params["Agent"]
 
 blobstore_defined = p('blobstore.provider') != 'dav' || !p(['blobstore.agent.user', 'agent.blobstore.address', 'blobstore.address'], nil).nil?
 
-if blobstore_defined do
+if blobstore_defined
   agent_params["blobstore"] = {
    "provider" => p("blobstore.provider"),
    "options" => {}
@@ -58,6 +58,7 @@ if blobstore_defined do
     blobstore["options"] = {
       "endpoint" => "http://#{p(['agent.blobstore.address', 'blobstore.address'])}:#{p('blobstore.port')}"
     }
+
     if_p('blobstore.agent.user') do
       blobstore["options"]["user"] = p('blobstore.agent.user')
       blobstore["options"]["password"] = p('blobstore.agent.password')
