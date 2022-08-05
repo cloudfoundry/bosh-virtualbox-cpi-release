@@ -8,12 +8,12 @@ import (
 	"strings"
 	"time"
 
+	apiv1 "github.com/cloudfoundry/bosh-cpi-go/apiv1"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
-	apiv1 "github.com/cloudfoundry/bosh-cpi-go/apiv1"
 
 	"bosh-virtualbox-cpi/driver"
 	bpds "bosh-virtualbox-cpi/vm/portdevices"
@@ -218,20 +218,26 @@ func (f Factory) switchRootDiskToSATAController(tmpDir string) error {
 
 		beforeSHA1 = fmt.Sprintf("%x", sha1.Sum([]byte(contents)))
 
-		// Sata controller example found here:
-		// https://communities.vmware.com/t5/ESXi-Discussions/How-to-add-SATA-controller-in-ESXi-5-5/m-p/935069/highlight/true#M80252
+		// If it is still IDE, replace differently. New jammy stemcells are SATA and not IDE controller
+		if strings.Contains(contents, "<rasd:Description>IDE Controller</rasd:Description>") {
+			// Sata controller example found here:
+			// https://communities.vmware.com/t5/ESXi-Discussions/How-to-add-SATA-controller-in-ESXi-5-5/m-p/935069/highlight/true#M80252
+			contents = strings.Replace(
+				contents, "<rasd:Parent>3</rasd:Parent>", "<rasd:Parent>4</rasd:Parent>", 1)
 
-		contents = strings.Replace(
-			contents, "<rasd:Parent>3</rasd:Parent>", "<rasd:Parent>4</rasd:Parent>", 1)
+			contents = strings.Replace(
+				contents, "<rasd:Description>IDE Controller</rasd:Description>", "<rasd:Description>SATA Controller</rasd:Description>", 1)
 
-		contents = strings.Replace(
-			contents, "<rasd:Description>IDE Controller</rasd:Description>", "<rasd:Description>SATA Controller</rasd:Description>", 1)
+			contents = strings.Replace(
+				contents, "<rasd:ElementName>ideController0</rasd:ElementName>", "<rasd:ElementName>sataController0</rasd:ElementName>", 1)
 
-		contents = strings.Replace(
-			contents, "<rasd:ElementName>ideController0</rasd:ElementName>", "<rasd:ElementName>sataController0</rasd:ElementName>", 1)
+			contents = strings.Replace(
+				contents, "<rasd:ResourceType>5</rasd:ResourceType>", "<rasd:ResourceSubType>AHCI</rasd:ResourceSubType><rasd:ResourceType>20</rasd:ResourceType>", 1)
 
-		contents = strings.Replace(
-			contents, "<rasd:ResourceType>5</rasd:ResourceType>", "<rasd:ResourceSubType>AHCI</rasd:ResourceSubType><rasd:ResourceType>20</rasd:ResourceType>", 1)
+		} else {
+			contents = strings.Replace(
+				contents, "<rasd:Parent>4</rasd:Parent>", "<rasd:Parent>3</rasd:Parent>", 1)
+		}
 
 		afterSHA1 = fmt.Sprintf("%x", sha1.Sum([]byte(contents)))
 
