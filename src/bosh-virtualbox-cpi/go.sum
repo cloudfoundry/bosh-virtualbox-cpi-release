@@ -7,6 +7,8 @@ github.com/charlievieth/fs v0.0.2 h1:vu3+e3KRrIguFN4HoYqkeM9TSjduugtsfHZwFvj/PBg
 github.com/charlievieth/fs v0.0.2/go.mod h1:74vroF06jvR8XMafvi2CYzs8WruHL1axh/qFx7XN5Xw=
 github.com/cloudfoundry/bosh-cpi-go v0.0.0-20211021235042-66fa96dba506 h1:SOXctBXghL0VSp+rzUNCLRYZ8yMAYEdEhNi6A51pHro=
 github.com/cloudfoundry/bosh-cpi-go v0.0.0-20211021235042-66fa96dba506/go.mod h1:UprycOKfN9N47g2CZIYfMCCg3097Y+E0O7bs1IhrICI=
+github.com/cloudfoundry/bosh-cpi-go v0.0.0-20230608150715-1e134ab6c93b h1:u3lPH4h6tVvwMvpSQ0BsDhPMk9c8tHA33ik0z96KC1w=
+github.com/cloudfoundry/bosh-cpi-go v0.0.0-20230608150715-1e134ab6c93b/go.mod h1:UprycOKfN9N47g2CZIYfMCCg3097Y+E0O7bs1IhrICI=
 github.com/cloudfoundry/bosh-utils v0.0.282/go.mod h1:hLJU7lg0y39O5GBOb1fPZBea1+6E0BllUCzwEbQZ0hk=
 github.com/cloudfoundry/bosh-utils v0.0.288 h1:gIVeOOu4t+dJ8Pt5McvPsWa6O28Y2oKPKQ74/Coy5v8=
 github.com/cloudfoundry/bosh-utils v0.0.288/go.mod h1:XcuConPorWp1k/MrP73sdY6NqPYP+FMnnicCGUlRrQQ=
