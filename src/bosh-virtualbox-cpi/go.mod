@@ -3,7 +3,7 @@ module bosh-virtualbox-cpi
 go 1.17
 
 require (
-	github.com/cloudfoundry/bosh-cpi-go v0.0.0-20211021235042-66fa96dba506
+	github.com/cloudfoundry/bosh-cpi-go v0.0.0-20230608150715-1e134ab6c93b
 	github.com/cloudfoundry/bosh-utils v0.0.288
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.16.0

@@ -4,7 +4,7 @@ github.com/bmatcuk/doublestar
 # github.com/charlievieth/fs v0.0.2
 ## explicit; go 1.15
 github.com/charlievieth/fs
-# github.com/cloudfoundry/bosh-cpi-go v0.0.0-20211021235042-66fa96dba506
+# github.com/cloudfoundry/bosh-cpi-go v0.0.0-20230608150715-1e134ab6c93b
 ## explicit; go 1.17
 github.com/cloudfoundry/bosh-cpi-go/apiv1
 github.com/cloudfoundry/bosh-cpi-go/rpc
