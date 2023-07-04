@@ -42,7 +42,7 @@ func (n Networks) AddNATNetwork(name string) error {
 }
 
 func (n Networks) NATNetworks() ([]Network, error) {
-	output, err := n.driver.Execute("list", "natnetworks")
+	output, err := n.driver.Execute("list", "--long", "natnetworks")
 	if err != nil {
 		return nil, err
 	}
@@ -67,8 +67,12 @@ func (n Networks) NATNetworks() ([]Network, error) {
 			switch matches[1] {
 			// does not include all keys
 			case "NetworkName":
+			// parameter rename in VBox v7
+			case "Name":
 				net.name = matches[2]
 			case "DHCP Enabled":
+			// parameter rename in VBox v7
+			case "DHCP Server":
 				net.dhcpEnabled, err = n.toBool(matches[2])
 			case "Network":
 				net.network = matches[2]
