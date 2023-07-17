@@ -1,8 +1,8 @@
 package cpi
 
 import (
+	"github.com/cloudfoundry/bosh-cpi-go/apiv1"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	apiv1 "github.com/cloudfoundry/bosh-cpi-go/apiv1"
 
 	bstem "bosh-virtualbox-cpi/stemcell"
 	bvm "bosh-virtualbox-cpi/vm"

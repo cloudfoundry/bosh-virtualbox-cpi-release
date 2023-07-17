@@ -1,10 +1,11 @@
 package network
 
 import (
-	"fmt"
-	"net"
-
 	"bosh-virtualbox-cpi/driver"
+	"fmt"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"net"
+	"os"
 )
 
 type HostOnly struct {
@@ -26,20 +27,34 @@ func (n HostOnly) Description() string {
 	return fmt.Sprintf("Host-only network '%s' (gw %s netmask %s)", n.name, n.ipAddress, n.networkMask)
 }
 
-func (n HostOnly) IsEnabled() bool { return n.status == "Up" }
+func (n HostOnly) IsEnabled() bool {
+	return n.status == "Up" || n.status == "Enabled"
+}
 
-func (n HostOnly) EnabledDescription() string { return "have status 'Up'" }
+func (n HostOnly) EnabledDescription() string {
+	return fmt.Sprintf("have status '%s'", n.status)
+}
 
 func (n HostOnly) Enable() error {
-	args := []string{"hostonlyif", "ipconfig", n.name}
-
-	if len(n.ipAddress) > 0 {
-		args = append(args, []string{"--ip", n.ipAddress, "--netmask", n.networkMask}...)
-	} else {
-		args = append(args, "--dhcp")
+	logger := boshlog.NewWriterLogger(boshlog.LevelDebug, os.Stderr)
+	systemInfo, err := Networks{driver: n.driver, logger: logger}.NewSystemInfo()
+	if err != nil {
+		return err
 	}
 
-	_, err := n.driver.Execute(args...)
+	var finalArgs []string
+	if systemInfo.IsMacOSXVBoxSpecial6or7Case() {
+		finalArgs = []string{"hostonlynet", "modify", fmt.Sprintf("--name=%s", n.name), "--enable"}
+	} else {
+		args := []string{"hostonlyif", "ipconfig", n.name}
+		if len(n.ipAddress) > 0 {
+			finalArgs = append(args, []string{"--ip", n.ipAddress, "--netmask", n.networkMask}...)
+		} else {
+			finalArgs = append(args, "--dhcp")
+		}
+	}
+
+	_, err = n.driver.ExecuteComplex(finalArgs, driver.ExecuteOpts{})
 
 	return err
 }
