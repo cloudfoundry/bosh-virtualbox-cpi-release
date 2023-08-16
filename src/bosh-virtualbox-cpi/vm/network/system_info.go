@@ -40,8 +40,7 @@ func (s SystemInfo) GetLastIP(subnet *net.IPNet) (net.IP, error) {
 // IsMacOSXVBoxSpecial6or7Case Identify if you are system is running on MAC OS X and the used
 // VirtualBox version is 6.1 or 7
 func (s SystemInfo) IsMacOSXVBoxSpecial6or7Case() bool {
-	if s.osVersion == "darwin" && (s.vBoxMajorVersion == "7" ||
-		(s.vBoxMajorVersion == "6" && s.VBoxMinorVersion == "1")) {
+	if s.osVersion == "darwin" && (s.vBoxMajorVersion == "7") {
 		return true
 	} else {
 		return false
