@@ -67,13 +67,9 @@ func (n Networks) NATNetworks() ([]Network, error) {
 
 			switch matches[1] {
 			// does not include all keys
-			case "NetworkName":
-			// parameter rename in VBox v7
-			case "Name":
+			case "NetworkName", "Name":
 				net.name = matches[2]
-			case "DHCP Enabled":
-			// parameter rename in VBox v7
-			case "DHCP Server":
+			case "DHCP Enabled", "DHCP Server":
 				net.dhcpEnabled, err = n.toBool(matches[2])
 			case "Network":
 				net.network = matches[2]
