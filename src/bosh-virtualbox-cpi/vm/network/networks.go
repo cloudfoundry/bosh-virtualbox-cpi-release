@@ -2,6 +2,7 @@ package network
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 
@@ -42,7 +43,7 @@ func (n Networks) AddNATNetwork(name string) error {
 }
 
 func (n Networks) NATNetworks() ([]Network, error) {
-	output, err := n.driver.Execute("list", "natnetworks")
+	output, err := n.driver.Execute("list", "--long", "natnetworks")
 	if err != nil {
 		return nil, err
 	}
@@ -66,9 +67,9 @@ func (n Networks) NATNetworks() ([]Network, error) {
 
 			switch matches[1] {
 			// does not include all keys
-			case "NetworkName":
+			case "NetworkName", "Name":
 				net.name = matches[2]
-			case "DHCP Enabled":
+			case "DHCP Enabled", "DHCP Server":
 				net.dhcpEnabled, err = n.toBool(matches[2])
 			case "Network":
 				net.network = matches[2]
@@ -145,13 +146,22 @@ func (n Networks) BridgedNetworks() ([]Network, error) {
 }
 
 func (n Networks) HostOnlys() ([]Network, error) {
-	output, err := n.driver.Execute("list", "hostonlyifs")
+	systemInfo, err := n.NewSystemInfo()
+	if err != nil {
+		return nil, err
+	}
+
+	commandName := "hostonlyifs"
+	if systemInfo.IsMacOSXVBoxSpecial6or7Case() {
+		commandName = "hostonlynets"
+	}
+
+	output, err := n.driver.Execute("list", fmt.Sprintf("%s", commandName))
 	if err != nil {
 		return nil, err
 	}
 
 	var nets []Network
-
 	for _, netChunk := range n.outputChunks(output) {
 		net := HostOnly{driver: n.driver}
 
@@ -171,9 +181,13 @@ func (n Networks) HostOnlys() ([]Network, error) {
 				net.dhcp, err = n.toBool(matches[2])
 			case "IPAddress":
 				net.ipAddress = matches[2]
+			case "LowerIP":
+				net.ipAddress = matches[2]
 			case "NetworkMask":
 				net.networkMask = matches[2]
 			case "Status":
+				net.status = matches[2]
+			case "State":
 				net.status = matches[2]
 			}
 
@@ -198,7 +212,18 @@ func (n Networks) outputChunks(output string) []string {
 	if output == "" {
 		return nil
 	}
-	return strings.Split(output, "\n\n")
+
+	logger := boshlog.NewWriterLogger(boshlog.LevelDebug, os.Stderr)
+	systemInfo, err := Networks{driver: n.driver, logger: logger}.NewSystemInfo()
+	if err != nil {
+		return nil
+	}
+	if systemInfo.IsMacOSXVBoxSpecial6or7Case() {
+		output = strings.Replace(output, "\n\n", "\n", -1)
+	}
+
+	outputChunks := strings.Split(output, "\n\n")
+	return outputChunks
 }
 
 func (n Networks) toBool(s string) (bool, error) {
