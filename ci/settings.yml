@@ -1,0 +1,46 @@
+---
+meta:
+  name:    bosh-virtualbox-cpi
+  target:  gk
+  url:     https://ci.gstack.io
+
+  test-errands: ~
+
+  initial_version: 1.0.0
+
+  manifest:
+    directory: manifests
+
+  git:
+    email:  ((git-commit-email))
+    name:   ((git-commit-name))
+
+  image:
+    registry:
+      username: ((docker_registry_username))
+      password: ((docker-registry-password))
+
+  aws:
+    bucket:      (( grab meta.pipeline ))
+    region_name: us-east-1
+    access_key:  ((aws-access-key))
+    secret_key:  ((aws-secret-key))
+
+  github:
+    owner:        cloudfoundry-community
+    repo:         (( grab meta.pipeline ))
+    branch:       master
+    private_key:  ((github-private-key))
+    access_token: ((github-access-token))
+
+  bosh:
+    stemcell:
+      cpi: warden-boshlite
+
+  slack:
+    webhook:       ((slack-webhook))
+    username:      ((slack-username))
+    icon:          ((slack-icon-url))
+    channel:       (( concat "#" meta.name "-boshrelease" ))
+    blob_success:  '(( concat ": New version of  was detected, and updated in master. <" meta.url "/teams//pipelines/| Cut a new release?>" ))'
+    blob_failure:  '(( concat ": :airplane_arriving: <" meta.url "/teams//pipelines//jobs//builds/| Failed to update the blob for >" ))'
