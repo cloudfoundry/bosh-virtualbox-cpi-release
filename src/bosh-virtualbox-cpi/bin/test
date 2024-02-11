@@ -13,6 +13,10 @@ $bin/build
 $bin/build-linux-amd64
 let "result+=$?"
 
+echo -e "\n Running ginkgo tests..."
+ACK_GINKGO_RC="true" ginkgo -r .
+let "result+=$?"
+
 if [ $result -eq 0 ]; then
   echo -e "\nSUITE SUCCESS"
 else
