@@ -1,12 +1,15 @@
 ---
 meta:
-  name:    bosh-virtualbox-cpi
-  target:  gk
-  url:     https://ci.gstack.io
+  name:     bosh-virtualbox-cpi
+  release:  VirtualBox CPI Bosh Release
+  target:   (( grab meta.team ))
+  url:      https://ci.gstack.io
+  pipeline: (( concat meta.name "-release" ))
+  team:     gk-plat-devs
 
   test-errands: ~
 
-  initial_version: 1.0.0
+  initial_version: "0.4.3"
 
   manifest:
     directory: manifests
@@ -16,22 +19,29 @@ meta:
     name:   ((git-commit-name))
 
   image:
+    name: (( concat meta.private-registry.host "/gstack/gk-ops" ))
     registry:
-      username: ((docker_registry_username))
-      password: ((docker-registry-password))
+      username: (( grab meta.private-registry.username ))
+      password: (( grab meta.private-registry.password ))
+
+  private-registry:
+    host:       harbor.ci.gstack.io
+    username:   ((private-registry-username))
+    password:   ((private-registry-password))
 
   aws:
     bucket:      (( grab meta.pipeline ))
-    region_name: us-east-1
+    region_name: eu-west-3
     access_key:  ((aws-access-key))
     secret_key:  ((aws-secret-key))
 
   github:
-    owner:        cloudfoundry-community
-    repo:         (( grab meta.pipeline ))
-    branch:       master
-    private_key:  ((github-private-key))
-    access_token: ((github-access-token))
+    owner:          gstackio
+    repo:           (( grab meta.pipeline ))
+    branch:         ci-pipeline
+    pr_base_branch: master
+    private_key:    ((github-private-key))
+    access_token:   ((github-access-token))
 
   bosh:
     stemcell:
@@ -41,6 +51,56 @@ meta:
     webhook:       ((slack-webhook))
     username:      ((slack-username))
     icon:          ((slack-icon-url))
-    channel:       (( concat "#" meta.name "-boshrelease" ))
-    blob_success:  '(( concat ": New version of  was detected, and updated in master. <" meta.url "/teams//pipelines/| Cut a new release?>" ))'
-    blob_failure:  '(( concat ": :airplane_arriving: <" meta.url "/teams//pipelines//jobs//builds/| Failed to update the blob for >" ))'
+    channel:       "#oss-pipelines-notifications"
+    # blob_success:  '(( concat ": New version of  was detected, and updated in master. <" meta.url "/teams//pipelines/| Cut a new release?>" ))'
+    # blob_failure:  '(( concat ": :airplane_arriving: <" meta.url "/teams//pipelines//jobs//builds/| Failed to update the blob for >" ))'
+
+groups:
+
+  # NOTICE: we deactivate all S3 access, as our release a git-LSF blobstore
+  - (( delete name "compiled-releases" ))
+
+jobs:
+
+  - (( merge on name ))
+
+  - name: shipit
+    plan:
+      # NOTICE: we deactivate all S3 access, as our release a git-LSF blobstore
+      - (( delete 3 )) # 'put: s3-tarball' step
+
+  # NOTICE: we deactivate all S3 access, as our release a git-LSF blobstore
+  - (( delete name "compile-release" ))
+  - (( delete name "use-compiled-releases" ))
+
+resources:
+
+  - (( merge on name ))
+
+  - name: git
+    check_every: 24h
+    webhook_token: ((concourse-webhook-token))
+
+  - name: git-pull-requests
+    check_every: 24h
+    webhook_token: ((concourse-webhook-token))
+
+  - name: version
+    icon: github
+    source:
+      bucket:            (( prune ))
+      region_name:       (( prune ))
+      key:               (( prune ))
+      access_key_id:     (( prune ))
+      secret_access_key: (( prune ))
+      driver:      git
+      uri:         git@github.com:gstackio/gk-pipelines-compass.git
+      branch:      master
+      file:        (( concat "versions/" meta.pipeline ))
+      private_key: ((github-private-key))
+      git_user:    "((git-commit-name)) <((git-commit-email))>"
+
+  # NOTICE: we deactivate all S3 access, as our release a git-LSF blobstore
+  - (( delete name "s3-tarball" ))
+  - (( delete name "compiled-release" ))
+  - (( delete name "(( concat meta.bosh.stemcell.os "-stemcell-" meta.bosh.stemcell.major ))" ))
