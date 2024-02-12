@@ -57,12 +57,352 @@ meta:
 
 groups:
 
+  - (( merge on name ))
+
+  - name: bump
+    jobs:
+      - bump-golang-blob
+      - bump-deps
+
   # NOTICE: we deactivate all S3 access, as our release a git-LSF blobstore
   - (( delete name "compiled-releases" ))
 
 jobs:
 
   - (( merge on name ))
+
+  - name: testflight
+    serial_groups: [ testflight ]
+
+  - name: bump-golang-blob
+    # See also: golang-release/ci/tasks/shared/bump-golang-package.yml
+    # Used in: https://github.com/cloudfoundry/bosh-google-cpi-release/blob/1525ee4/ci/pipeline.yml#L364-L387
+    public: true
+    serial: true
+    serial_groups: [ testflight ]
+    plan:
+      - in_parallel:
+          - { get: weekly, trigger: true }
+          - { get: git }
+          - { get: golang-release }
+          - { get: gk-automation }
+          - { get: image }
+
+      - task: vendor-bosh-packages
+        image: image
+        config:
+          platform: linux
+          inputs:
+            - { name: git, path: repo }
+            - { name: golang-release }
+          caches: [ path: /root/.bosh/cache ]
+          outputs:
+            - name: repo-bumped
+            - name: package-info
+          run:
+            path: bash
+            args:
+            - -c
+            - |
+              set -ueo pipefail
+              build_dir="${PWD}"
+              find "repo" -mindepth 1 -maxdepth 1 -print0 \
+                  | xargs -0 -I{} cp -a {} "repo-bumped"
+              cd "repo-bumped" || exit 115
+              blobstore_provider=$(bosh int config/final.yml --path /blobstore/provider)
+              if [[ ${blobstore_provider} == "s3" && -n ${AWS_ACCESS_KEY} ]]; then
+                  cat > config/private.yml <<YAML
+              ---
+              blobstore:
+                options:
+                  access_key_id: ${AWS_ACCESS_KEY}
+                  secret_access_key: ${AWS_SECRET_KEY:?required}
+              YAML
+              fi
+              for pkg in $(jq --raw-output '.[]' <<< "${PACKAGES}"); do
+                  if [[ -f "packages/${pkg}/version"
+                          && ! -f "${build_dir}/package-info/previous-version" ]]; then
+                      cp -v "packages/${pkg}/version" \
+                          "${build_dir}/package-info/previous-version"
+                  fi
+                  bosh vendor-package "${pkg}" "${build_dir}/golang-release"
+                  cp -v "${build_dir}/golang-release/packages/${pkg}/version" \
+                      "packages/${pkg}/version"
+                  if [[ ! -f "${build_dir}/package-info/version" ]]; then
+                      cp "packages/${pkg}/version" \
+                          "${build_dir}/package-info/version"
+                  fi
+              done
+          params:
+            AWS_ACCESS_KEY: (( grab meta.aws.access_key ))
+            AWS_SECRET_KEY: (( grab meta.aws.secret_key ))
+            PACKAGES:       [ golang-1-linux, golang-1-darwin ]
+        output_mapping:
+          package-info: golang-info
+
+      - task: testflight
+        image: image
+        config:
+          platform: linux
+          inputs: [ { name: repo-bumped, path: git } ]
+          caches: [ path: /root/.bosh/cache ]
+          run:
+            path: ./git/ci/scripts/testflight
+            args: []
+          params:
+            EXPECT_GIT_CHANGES: true
+            REPO_ROOT:          git
+            BOSH_ENVIRONMENT:   (( grab meta.bosh.target ))
+            BOSH_CA_CERT:       (( grab meta.bosh.cacert ))
+            BOSH_CLIENT:        (( grab meta.bosh.username ))
+            BOSH_CLIENT_SECRET: (( grab meta.bosh.password ))
+            BOSH_DEPLOYMENT:    (( grab meta.bosh.deployment ))
+            TEST_ERRANDS:       (( grab meta.test-errands || meta.test-errand || ~ ))
+            AWS_ACCESS_KEY:     (( grab meta.aws.access_key ))
+            AWS_SECRET_KEY:     (( grab meta.aws.secret_key ))
+            MANIFEST_PATH:      (( grab meta.manifest.path ))
+            MANIFEST_VARS:      (( grab meta.manifest.vars ))
+            MANIFEST_OP_PATHS:  (( grab meta.manifest.operator_file_paths ))
+
+      - task: generate-messages
+        image: image
+        config:
+          platform: linux
+          inputs:
+            - name: golang-info
+            - name: repo-bumped
+          outputs: [ name: messages ]
+          run:
+            path: bash
+            args:
+            - -c
+            - |
+              set -ueo pipefail
+
+              pushd "repo-bumped" > /dev/null
+                  if [[ -f ".gitattributes" ]] && grep -qF "lfs" ".gitattributes"; then
+                    git lfs install
+                  fi
+                  git_changes=$(git status --porcelain)
+              popd > /dev/null
+
+              go_prev_ver=$(< golang-info/previous-version)
+              go_curr_ver=$(< golang-info/version)
+
+              version_details="${go_curr_ver}"
+              if [[ ${go_curr_ver} != ${go_prev_ver} ]]; then
+                  version_details="from ${go_prev_ver} to ${go_curr_ver}"
+              fi
+              echo "INFO: Generated commit message:"
+              echo "Update Golang package ${version_details}" \
+                  | tee messages/commit-message
+
+              echo "INFO: Generated slack notification:"
+              if [[ -z "${git_changes}" ]]; then
+                  : > messages/notif-body
+                  echo "(none, implying no notification, as there are no changes)"
+              else
+                  echo "${PIPELINE_NAME}: successfully updated" \
+                      "Golang package ${version_details}," \
+                      "with passing testflight! :tada:" \
+                      "<${PIPELINE_URL}|Ship it when ready!> ${SUCCESS_MOJI}" \
+                      | tee messages/notif-body
+              fi
+          params:
+            SUCCESS_MOJI:  (( grab meta.slack.success_moji ))
+            PIPELINE_URL:  (( grab meta.slack.pipeline_url ))
+            PIPELINE_NAME: (( grab meta.pipeline ))
+
+      - task: git-commit
+        image: image
+        file: gk-automation/tasks/git/commit.yml
+        input_mapping:
+          repo:        repo-bumped
+          commit-info: messages
+        params:
+          GIT_COMMIT_NAME:    (( grab meta.git.name ))
+          GIT_COMMIT_EMAIL:   (( grab meta.git.email ))
+          GIT_DIFF_OPTS:      --color-words
+
+      - put: git
+        params:
+          repository: repo-committed
+          rebase:     true
+
+    on_failure:
+      put: notify
+      params:
+        channel:  (( grab meta.slack.channel ))
+        username: (( grab meta.slack.username ))
+        icon_url: (( grab meta.slack.icon ))
+        text:     (( grab meta.slack.fail_text ))
+    on_success:
+      put: notify
+      params:
+        channel:  (( grab meta.slack.channel ))
+        username: (( grab meta.slack.username ))
+        icon_url: (( grab meta.slack.icon ))
+        text_file: messages/notif-body
+
+  - name: bump-deps
+    # See also: golang-release/ci/tasks/shared/bump-deps.yml
+    # Used in: https://github.com/cloudfoundry/bosh-google-cpi-release/blob/1525ee4/ci/pipeline.yml#L389-L411
+    public: true
+    serial: true
+    plan:
+      - in_parallel:
+          - { get: weekly, trigger: true }
+          - { get: git }
+          - { get: gk-automation }
+          - { get: golang-runner, resource: golang-alpine } # format: rootfs
+          - { get: golang-alpine, params: { format: oci } }
+          - { get: alpine-latest, params: { format: oci } }
+          - { get: image }
+
+      - task: bump-golang-deps
+        image: golang-runner
+        config:
+          platform: linux
+          inputs:  [ { name: git, path: repo } ]
+          caches:  [ path: /go ]
+          outputs:
+            - name: repo-bumped
+            - name: golang-info
+          run:
+            path: sh
+            args:
+            - -ec
+            - |
+              build_dir="${PWD}"
+              find "repo" -mindepth 1 -maxdepth 1 -print0 \
+                  | xargs -0 -I{} cp -a {} "repo-bumped"
+              cd "repo-bumped/${SOURCE_PATH}" || exit 115
+
+              awk '/^go /{print $2}' go.mod > "${build_dir}/golang-info/previous-version"
+              (
+                  set -x
+                  go_version=$(
+                      go version \
+                      | awk '{sub(/go/,"",$3); sub(/\.[[:digit:]]+$/,"",$3); print $3}'
+                  )
+                  # sed -i -Ee "s/^go [[:digit:].]+\$/go ${go_version}/" go.mod
+                  go mod edit -go="${go_version}"
+                  go get -t -u ./...
+                  go mod tidy
+                  if [ -f "vendor/modules.txt" ]; then
+                      go mod vendor
+                  fi
+
+                  echo "${go_version}" > "${build_dir}/golang-info/version"
+              )
+          params:
+            SOURCE_PATH: src/bosh-virtualbox-cpi
+
+      - task: test-golang-code
+        image: golang-runner
+        config:
+          platform: linux
+          inputs:  [ name: repo-bumped ]
+          caches:  [ path: /go ]
+          run:
+            dir: repo-bumped/src/bosh-virtualbox-cpi
+            path: sh
+            args:
+            - -exc
+            - |
+              apk add --no-cache --no-progress git git-lfs
+              if [[ -f ".gitattributes" ]] && grep -qF "lfs" ".gitattributes"; then
+                git lfs install
+              fi
+              git_changes=$(git status --porcelain)
+              if [[ -z "${git_changes}" ]]; then
+                  echo "INFO: skipping compile/test, as there are no changes."
+                  exit
+              fi
+
+              apk add --no-cache --no-progress bash
+              go install github.com/onsi/ginkgo/v2/ginkgo@latest
+              bin/test
+
+      - task: generate-messages
+        image: image
+        config:
+          platform: linux
+          inputs:
+            - name: golang-info
+            - name: repo-bumped
+          outputs: [ name: messages ]
+          run:
+            path: bash
+            args:
+            - -c
+            - |
+              set -ueo pipefail
+
+              pushd "repo-bumped" > /dev/null
+                  if [[ -f ".gitattributes" ]] && grep -qF "lfs" ".gitattributes"; then
+                    git lfs install
+                  fi
+                  git_changes=$(git status --porcelain)
+              popd > /dev/null
+
+              go_prev_ver=$(< golang-info/previous-version)
+              go_curr_ver=$(< golang-info/version)
+
+              version_details="${go_curr_ver}"
+              if [[ ${go_curr_ver} != ${go_prev_ver} ]]; then
+                  version_details="from ${go_prev_ver} to ${go_curr_ver} and its"
+              fi
+              echo "INFO: Generated commit message:"
+              echo "Update Golang ${version_details} dependencies" \
+                  | tee messages/commit-message
+
+              echo "INFO: Generated slack notification:"
+              if [[ -z "${git_changes}" ]]; then
+                  : > messages/notif-body
+                  echo "(none, implying no notification, as there are no changes)"
+              else
+                  echo "${PIPELINE_NAME}: successfully bumped" \
+                      "Golang ${version_details} dependencies," \
+                      "with passing tests! :tada:" \
+                      "<${PIPELINE_URL}|Ship it when ready!> ${SUCCESS_MOJI}" \
+                      | tee messages/notif-body
+              fi
+          params:
+            SUCCESS_MOJI:  (( grab meta.slack.success_moji ))
+            PIPELINE_URL:  (( grab meta.slack.pipeline_url ))
+            PIPELINE_NAME: (( grab meta.pipeline ))
+
+      - task: git-commit
+        image: image
+        file: gk-automation/tasks/git/commit.yml
+        input_mapping:
+          repo:        repo-bumped
+          commit-info: messages
+        params:
+          GIT_COMMIT_NAME:    (( grab meta.git.name ))
+          GIT_COMMIT_EMAIL:   (( grab meta.git.email ))
+          GIT_DIFF_OPTS:      --color-words
+
+      - put: git
+        params:
+          repository: repo-committed
+          rebase:     true
+
+    on_failure:
+      put: notify
+      params:
+        channel:  (( grab meta.slack.channel ))
+        username: (( grab meta.slack.username ))
+        icon_url: (( grab meta.slack.icon ))
+        text:     (( grab meta.slack.fail_text ))
+    on_success:
+      put: notify
+      params:
+        channel:  (( grab meta.slack.channel ))
+        username: (( grab meta.slack.username ))
+        icon_url: (( grab meta.slack.icon ))
+        text_file: messages/notif-body
 
   - name: shipit
     plan:
@@ -104,3 +444,48 @@ resources:
   - (( delete name "s3-tarball" ))
   - (( delete name "compiled-release" ))
   - (( delete name "(( concat meta.bosh.stemcell.os "-stemcell-" meta.bosh.stemcell.major ))" ))
+
+  - (( merge on name ))
+
+  - name: golang-alpine
+    type: registry-image
+    icon: docker
+    check_every: 24h
+    source:
+      repository: golang
+      variant:    alpine
+
+  - name: alpine-latest
+    type: registry-image
+    icon: docker
+    check_every: 24h
+    source:
+      repository:        alpine
+      semver_constraint: "< 1970" # Avoid YYYYMMDD tags like '20231219'
+
+  - name: gk-automation
+    type: git
+    icon: github
+    check_every: 24h
+    source:
+      uri:         git@github.com:gstackio/gk-automation.git
+      branch:      master
+      private_key: (( grab meta.github.private_key ))
+
+  - name: weekly
+    type: time
+    icon: alarm
+    source:
+      location: Europe/Paris
+      start:    "3:00"
+      stop:     "4:30"
+      days:     [ Saturday ]
+
+  - name: golang-release
+    type: git
+    icon: github
+    check_every: 24h
+    source:
+      uri:         https://github.com/cloudfoundry/bosh-package-golang-release.git
+      branch:      main
+      private_key: (( grab meta.github.private_key ))
