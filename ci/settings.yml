@@ -7,7 +7,7 @@ meta:
   pipeline: (( concat meta.name "-release" ))
   team:     gk-plat-devs
 
-  test-errands: ~
+  test-errands: vbox-cpi-smoke-tests
 
   initial_version: "0.4.3"
 

@@ -6,6 +6,7 @@ instance_groups:
     instances: 1
     azs:       [ z1 ]
     jobs:
+
       - name: virtualbox_cpi
         release: bosh-virtualbox-cpi
         properties:
@@ -14,6 +15,10 @@ instance_groups:
           host: vbox-host.example.org
           private_key: ((vbox_ssh.private_key))
           username: example-vbox-username
+
+      - name: vbox-cpi-smoke-tests
+        release: bosh-virtualbox-cpi
+
     stemcell: default
     vm_type:  default
     networks: [ name: default ]
