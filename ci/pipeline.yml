@@ -303,6 +303,7 @@ jobs:
           inputs:
             - name: version
             - name: git
+          caches: [ path: /root/.bosh/cache ]
           outputs:
             - name: gh
             - name: pushme

@@ -47,7 +47,8 @@ script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 ###############################################################
 
-git clone ${REPO_ROOT} ${REPO_OUT}
+find "${REPO_ROOT}" -mindepth 1 -maxdepth 1 -print0 \
+  | xargs -0 -I{} cp -a {} "${REPO_OUT}"
 
 pushd ${REPO_OUT}
 
