@@ -38,7 +38,7 @@ meta:
   github:
     owner:          gstackio
     repo:           (( grab meta.pipeline ))
-    branch:         ci-pipeline
+    branch:         master
     pr_base_branch: master
     private_key:    ((github-private-key))
     access_token:   ((github-access-token))
