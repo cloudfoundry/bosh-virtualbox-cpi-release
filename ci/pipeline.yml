@@ -320,6 +320,7 @@ jobs:
             NOTIFICATION_OUT: notifications
             RELEASE_BRANCH:   (( grab meta.github.release_branch ))
             GITHUB_OWNER:     (( grab meta.github.owner ))
+            GITHUB_REPO:      (( grab meta.github.repo ))
             GIT_EMAIL:        (( grab meta.git.email ))
             GIT_NAME:         (( grab meta.git.name ))
             AWS_ACCESS_KEY:   (( grab meta.aws.access_key ))
