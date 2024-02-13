@@ -3,9 +3,9 @@ package disk
 import (
 	"path/filepath"
 
+	apiv1 "github.com/cloudfoundry/bosh-cpi-go/apiv1"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	apiv1 "github.com/cloudfoundry/bosh-cpi-go/apiv1"
 
 	"bosh-virtualbox-cpi/driver"
 )
