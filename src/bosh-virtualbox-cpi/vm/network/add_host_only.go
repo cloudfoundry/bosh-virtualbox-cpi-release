@@ -56,7 +56,7 @@ func (n Networks) createHostOnly(gateway, netmask string) (string, error) {
 
 	var matches []string
 	var errorMessage string
-	var matchesLen int
+	var expectedMatchesLen int
 
 	if systemInfo.IsMacOSXVBoxSpecial6or7Case() {
 		addr := net.ParseIP(netmask).To4()
@@ -105,7 +105,7 @@ func (n Networks) createHostOnly(gateway, netmask string) (string, error) {
 			"Internal inconsistency: Expected len(%s matches) == 1:",
 			createdHostOnlyNetMatch,
 		)
-		matchesLen = 1
+		expectedMatchesLen = 1
 	} else {
 		args := []string{"hostonlyif", "create"}
 		output, err := n.driver.ExecuteComplex(args, driver.ExecuteOpts{})
@@ -117,14 +117,14 @@ func (n Networks) createHostOnly(gateway, netmask string) (string, error) {
 			"Internal inconsistency: Expected len(%s matches) == 2:",
 			createdHostOnlyMatch,
 		)
-		matchesLen = 2
+		expectedMatchesLen = 2
 	}
 
-	if len(matches) != matchesLen {
+	if len(matches) != expectedMatchesLen {
 		panic(errorMessage)
 	}
 
-	return matches[matchesLen-1], nil
+	return matches[expectedMatchesLen-1], nil
 }
 
 func (n Networks) configureHostOnly(name, gateway, netmask string) error {
