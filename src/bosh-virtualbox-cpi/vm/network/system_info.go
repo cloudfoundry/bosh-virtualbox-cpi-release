@@ -76,10 +76,6 @@ func rangeSize(subnet *net.IPNet) int64 {
 	if bits == 32 && (bits-ones) >= 31 || bits == 128 && (bits-ones) >= 127 {
 		return 0
 	}
-
-	if bits == 128 && (bits-ones) >= 16 {
-		return int64(1) << uint(16)
-	}
 	return int64(1) << uint(bits-ones)
 }
 
