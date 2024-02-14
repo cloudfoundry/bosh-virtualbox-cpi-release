@@ -67,13 +67,13 @@ func (n Networks) createHostOnly(gateway, netmask string) (string, error) {
 		cidrRange, _ := net.IPv4Mask(addr[0], addr[1], addr[2], addr[3]).Size()
 		_, subnet, err := net.ParseCIDR(fmt.Sprintf("%s/%v", gateway, cidrRange))
 
-		lowerIp, errGetFirstIP := systemInfo.GetFirstIP(subnetFirstIP)
-		if errGetFirstIP != nil {
-			return "", errGetFirstIP
+		lowerIp, err := systemInfo.GetFirstIP(subnetFirstIP)
+		if err != nil {
+			return "", err
 		}
-		upperIp, errGetLastIP := systemInfo.GetLastIP(subnet)
-		if errGetLastIP != nil {
-			return "", errGetLastIP
+		upperIp, err := systemInfo.GetLastIP(subnet)
+		if err != nil {
+			return "", err
 		}
 
 		args := []string{"hostonlynet",
