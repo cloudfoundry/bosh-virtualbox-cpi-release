@@ -49,13 +49,13 @@ func (n Networks) createHostOnly(gateway, netmask string) (string, error) {
 	var expectedMatchesLen int
 
 	if systemInfo.IsMacOSXVBoxSpecial6or7Case() {
-		addr := net.ParseIP(netmask).To4()
+		maskIP := net.ParseIP(netmask).To4()
 		subnetFirstIP := &net.IPNet{
 			IP:   net.ParseIP(gateway),
-			Mask: net.IPv4Mask(addr[0], addr[1], addr[2], addr[3]),
+			Mask: net.IPv4Mask(maskIP[0], maskIP[1], maskIP[2], maskIP[3]),
 		}
-		cidrRange, _ := net.IPv4Mask(addr[0], addr[1], addr[2], addr[3]).Size()
-		_, subnet, err := net.ParseCIDR(fmt.Sprintf("%s/%v", gateway, cidrRange))
+		maskLength, _ := net.IPv4Mask(maskIP[0], maskIP[1], maskIP[2], maskIP[3]).Size()
+		_, subnet, _ := net.ParseCIDR(fmt.Sprintf("%s/%v", gateway, maskLength))
 
 		lowerIp, err := systemInfo.GetFirstIP(subnetFirstIP)
 		if err != nil {
