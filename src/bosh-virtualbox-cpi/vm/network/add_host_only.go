@@ -13,22 +13,12 @@ var (
 )
 
 func (n Networks) AddHostOnly(name, gateway, netmask string) (bool, error) {
-	systemInfo, err := n.NewSystemInfo()
-	if err != nil {
-		return false, err
-	}
-
 	// VB does not allow naming host-only networks inside version <= 6 , exit if it's not the first one
 	if len(name) > 0 && name != "vboxnet0" {
 		return false, nil
 	}
 
-	var createdName string
-	if systemInfo.IsMacOSXVBoxSpecial6or7Case() {
-		createdName, err = n.createHostOnly(gateway, netmask)
-	} else {
-		createdName, err = n.createHostOnly("", "")
-	}
+	createdName, err := n.createHostOnly(gateway, netmask)
 
 	if err != nil {
 		return true, err
