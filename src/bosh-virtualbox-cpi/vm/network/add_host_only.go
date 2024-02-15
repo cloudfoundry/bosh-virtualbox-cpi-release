@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net"
 	"regexp"
+
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 var (
@@ -50,11 +52,20 @@ func (n Networks) createHostOnly(gateway, netmask string) (string, error) {
 
 	if systemInfo.IsMacOSXVBoxSpecial6or7Case() {
 		maskIP := net.ParseIP(netmask).To4()
-		subnetFirstIP := &net.IPNet{
-			IP:   net.ParseIP(gateway),
-			Mask: net.IPv4Mask(maskIP[0], maskIP[1], maskIP[2], maskIP[3]),
+		if maskIP == nil {
+			return "", bosherr.Errorf("expected netmask to be valid IP v4 (got '%s')", netmask)
 		}
-		maskLength, _ := net.IPv4Mask(maskIP[0], maskIP[1], maskIP[2], maskIP[3]).Size()
+		gwIP := net.ParseIP(gateway)
+		if gwIP == nil {
+			return "", bosherr.Errorf("expected gateway to be valid IP v4 (got '%s')", gateway)
+		}
+
+		mask := net.IPv4Mask(maskIP[0], maskIP[1], maskIP[2], maskIP[3])
+		subnetFirstIP := &net.IPNet{
+			IP:   gwIP,
+			Mask: mask,
+		}
+		maskLength, _ := mask.Size()
 		_, subnet, _ := net.ParseCIDR(fmt.Sprintf("%s/%v", gateway, maskLength))
 
 		lowerIp, err := systemInfo.GetFirstIP(subnetFirstIP)
