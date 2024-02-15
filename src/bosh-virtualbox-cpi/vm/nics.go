@@ -2,13 +2,15 @@ package vm
 
 import (
 	"fmt"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"math/rand"
 	"os"
 	"strconv"
 	"strings"
 
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+
 	network "bosh-virtualbox-cpi/vm/network"
+
 	apiv1 "github.com/cloudfoundry/bosh-cpi-go/apiv1"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 
@@ -76,7 +78,7 @@ func (n NICs) addNIC(nic string, net Network, host Host) (string, error) {
 			return "", err
 		}
 
-		if systemInfo.IsMacOSXVBoxSpecial6or7Case() {
+		if systemInfo.IsMacOSVbox7() {
 			args = append(args, []string{"hostonlynet", "--host-only-net" + nic, actualNet.Name()}...)
 		} else {
 			args = append(args, []string{"hostonly", "--hostonlyadapter" + nic, actualNet.Name()}...)

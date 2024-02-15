@@ -50,7 +50,7 @@ func (n Networks) createHostOnly(gateway, netmask string) (string, error) {
 	var errorMessage string
 	var expectedMatchesLen int
 
-	if systemInfo.IsMacOSXVBoxSpecial6or7Case() {
+	if systemInfo.IsMacOSVbox7() {
 		maskIP := net.ParseIP(netmask).To4()
 		if maskIP == nil {
 			return "", bosherr.Errorf("expected netmask to be valid IP v4 (got '%s')", netmask)
@@ -134,7 +134,7 @@ func (n Networks) configureHostOnly(name, gateway, netmask string) error {
 		return err
 	}
 
-	if systemInfo.IsMacOSXVBoxSpecial6or7Case() == false {
+	if systemInfo.IsMacOSVbox7() == false {
 		args := []string{"hostonlyif", "ipconfig", name}
 
 		if len(gateway) > 0 {
@@ -163,7 +163,7 @@ func (n Networks) cleanUpPartialHostOnlyCreate(name string) {
 		"remove",
 		name,
 	}
-	if systemInfo.IsMacOSXVBoxSpecial6or7Case() {
+	if systemInfo.IsMacOSVbox7() {
 		args = []string{
 			"hostonlynet",
 			"remove",
