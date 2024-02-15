@@ -44,7 +44,7 @@ func (n HostOnly) Enable() error {
 	}
 
 	var finalArgs []string
-	if systemInfo.IsMacOSVbox7() {
+	if systemInfo.IsMacOSVboxV7OrLater() {
 		finalArgs = []string{"hostonlynet", "modify", fmt.Sprintf("--name=%s", n.name), "--enable"}
 	} else {
 		args := []string{"hostonlyif", "ipconfig", n.name}

@@ -37,9 +37,9 @@ func (s SystemInfo) GetLastIP(subnet *net.IPNet) (net.IP, error) {
 	return getIndexedIP(subnet, int(size-1))
 }
 
-// IsMacOSVbox7 Identifies if you're running VirtualBox version 7 on macOS
-func (s SystemInfo) IsMacOSVbox7() bool {
-	if s.osVersion == "darwin" && (s.vBoxMajorVersion == "7") {
+// Identifies if you're running VirtualBox version 7 (or later) on macOS
+func (s SystemInfo) IsMacOSVboxV7OrLater() bool {
+	if s.osVersion == "darwin" && (s.vBoxMajorVersion >= "7") {
 		return true
 	} else {
 		return false

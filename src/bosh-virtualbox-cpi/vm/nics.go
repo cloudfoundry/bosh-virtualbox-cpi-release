@@ -78,7 +78,7 @@ func (n NICs) addNIC(nic string, net Network, host Host) (string, error) {
 			return "", err
 		}
 
-		if systemInfo.IsMacOSVbox7() {
+		if systemInfo.IsMacOSVboxV7OrLater() {
 			args = append(args, []string{"hostonlynet", "--host-only-net" + nic, actualNet.Name()}...)
 		} else {
 			args = append(args, []string{"hostonly", "--hostonlyadapter" + nic, actualNet.Name()}...)

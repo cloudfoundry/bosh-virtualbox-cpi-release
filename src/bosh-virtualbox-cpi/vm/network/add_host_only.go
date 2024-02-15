@@ -50,7 +50,7 @@ func (n Networks) createHostOnly(gateway, netmask string) (string, error) {
 	var errorMessage string
 	var expectedMatchesLen int
 
-	if systemInfo.IsMacOSVbox7() {
+	if systemInfo.IsMacOSVboxV7OrLater() {
 		maskIP := net.ParseIP(netmask).To4()
 		if maskIP == nil {
 			return "", bosherr.Errorf("expected netmask to be valid IP v4 (got '%s')", netmask)
@@ -108,8 +108,7 @@ func (n Networks) createHostOnly(gateway, netmask string) (string, error) {
 		)
 		expectedMatchesLen = 1
 	} else {
-		args := []string{"hostonlyif", "create"}
-		output, err := n.driver.ExecuteComplex(args, driver.ExecuteOpts{})
+		output, err := n.driver.Execute("hostonlyif", "create")
 		if err != nil {
 			return "", err
 		}
@@ -134,7 +133,7 @@ func (n Networks) configureHostOnly(name, gateway, netmask string) error {
 		return err
 	}
 
-	if systemInfo.IsMacOSVbox7() == false {
+	if !systemInfo.IsMacOSVboxV7OrLater() {
 		args := []string{"hostonlyif", "ipconfig", name}
 
 		if len(gateway) > 0 {
