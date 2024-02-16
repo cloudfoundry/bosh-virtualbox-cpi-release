@@ -30,6 +30,11 @@ func (h Host) FindNetwork(net Network) (bnet.Network, error) {
 	}
 }
 
+// Enable the network that the VM is to be attached to, and create that
+// network if necessary.
+//
+// In the VM creation workflow, the network is enabled _before_ being looked
+// up with (vm.Host).FindNetworks(Network).
 func (h Host) EnableNetworks(nets Networks) error {
 	for _, net := range nets {
 		switch net.CloudPropertyType() {
@@ -86,6 +91,8 @@ func (n *hostNetwork) Find() (bnet.Network, error) {
 	return nil, fmt.Errorf("Expected to find network '%s'", n.net.CloudPropertyName())
 }
 
+// Enable the network, and try to create it if it does not exist and if is not
+// already been tried.
 func (n *hostNetwork) Enable() error {
 	actualNets, err := n.adapter.List()
 	if err != nil {
@@ -189,13 +196,7 @@ func (n hostOnlysAdapter) List() ([]bnet.Network, error) {
 }
 
 func (n hostOnlysAdapter) Create(net Network) error {
-	canCreate, err := n.AddHostOnly(net.CloudPropertyName(), net.Gateway(), net.Netmask())
-	if err != nil {
-		return err
-	} else if !canCreate {
-		return fmt.Errorf("Expected to find Host-only network '%s'", net.CloudPropertyName())
-	}
-	return nil
+	return n.AddHostOnly(net.CloudPropertyName(), net.Gateway(), net.Netmask())
 }
 
 func (n hostOnlysAdapter) Matches(net Network, actualNet bnet.Network) bool {

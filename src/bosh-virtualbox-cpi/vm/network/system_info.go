@@ -6,6 +6,8 @@ import (
 	"net"
 	"runtime"
 	"strings"
+
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type SystemInfo struct {
@@ -57,7 +59,7 @@ func (n Networks) getVboxVersion() (string, string, error) {
 	matches := strings.Split(output, ".")
 
 	if len(matches) > 3 {
-		panic(fmt.Sprintf("Internal inconsistency: Expected len(%s matches) >= 3:", createdHostOnlyMatch))
+		return "", "", bosherr.Errorf("Expected VirtualBox version to have 3 dot-separated parts (got '%s')", output)
 	}
 
 	return matches[0], matches[1], nil
