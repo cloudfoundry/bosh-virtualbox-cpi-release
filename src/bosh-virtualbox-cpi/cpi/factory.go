@@ -1,11 +1,11 @@
 package cpi
 
 import (
+	apiv1 "github.com/cloudfoundry/bosh-cpi-go/apiv1"
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
-	apiv1 "github.com/cloudfoundry/bosh-cpi-go/apiv1"
 
 	bdisk "bosh-virtualbox-cpi/disk"
 	"bosh-virtualbox-cpi/driver"

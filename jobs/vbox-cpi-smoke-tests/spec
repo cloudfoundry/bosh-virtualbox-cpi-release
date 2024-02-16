@@ -1,0 +1,9 @@
+---
+name: vbox-cpi-smoke-tests
+
+templates:
+  bin/run: bin/run
+
+packages: []
+
+properties: {}
