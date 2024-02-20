@@ -152,7 +152,7 @@ func (n Networks) HostOnlys() ([]Network, error) {
 	}
 
 	commandName := "hostonlyifs"
-	if systemInfo.IsMacOSXVBoxSpecial6or7Case() {
+	if systemInfo.IsMacOSVboxV7OrLater() {
 		commandName = "hostonlynets"
 	}
 
@@ -218,7 +218,7 @@ func (n Networks) outputChunks(output string) []string {
 	if err != nil {
 		return nil
 	}
-	if systemInfo.IsMacOSXVBoxSpecial6or7Case() {
+	if systemInfo.IsMacOSVboxV7OrLater() {
 		output = strings.Replace(output, "\n\n", "\n", -1)
 	}
 

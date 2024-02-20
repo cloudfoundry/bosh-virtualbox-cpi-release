@@ -6,6 +6,8 @@ import (
 	"net"
 	"runtime"
 	"strings"
+
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type SystemInfo struct {
@@ -37,10 +39,9 @@ func (s SystemInfo) GetLastIP(subnet *net.IPNet) (net.IP, error) {
 	return getIndexedIP(subnet, int(size-1))
 }
 
-// IsMacOSXVBoxSpecial6or7Case Identify if you are system is running on MAC OS X and the used
-// VirtualBox version is 6.1 or 7
-func (s SystemInfo) IsMacOSXVBoxSpecial6or7Case() bool {
-	if s.osVersion == "darwin" && (s.vBoxMajorVersion == "7") {
+// Identifies if you're running VirtualBox version 7 (or later) on macOS
+func (s SystemInfo) IsMacOSVboxV7OrLater() bool {
+	if s.osVersion == "darwin" && (s.vBoxMajorVersion >= "7") {
 		return true
 	} else {
 		return false
@@ -58,7 +59,7 @@ func (n Networks) getVboxVersion() (string, string, error) {
 	matches := strings.Split(output, ".")
 
 	if len(matches) > 3 {
-		panic(fmt.Sprintf("Internal inconsistency: Expected len(%s matches) >= 3:", createdHostOnlyMatch))
+		return "", "", bosherr.Errorf("Expected VirtualBox version to have 3 dot-separated parts (got '%s')", output)
 	}
 
 	return matches[0], matches[1], nil
@@ -75,10 +76,6 @@ func rangeSize(subnet *net.IPNet) int64 {
 	ones, bits := subnet.Mask.Size()
 	if bits == 32 && (bits-ones) >= 31 || bits == 128 && (bits-ones) >= 127 {
 		return 0
-	}
-
-	if bits == 128 && (bits-ones) >= 16 {
-		return int64(1) << uint(16)
 	}
 	return int64(1) << uint(bits-ones)
 }

@@ -3,9 +3,10 @@ package network
 import (
 	"bosh-virtualbox-cpi/driver"
 	"fmt"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"net"
 	"os"
+
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type HostOnly struct {
@@ -43,7 +44,7 @@ func (n HostOnly) Enable() error {
 	}
 
 	var finalArgs []string
-	if systemInfo.IsMacOSXVBoxSpecial6or7Case() {
+	if systemInfo.IsMacOSVboxV7OrLater() {
 		finalArgs = []string{"hostonlynet", "modify", fmt.Sprintf("--name=%s", n.name), "--enable"}
 	} else {
 		args := []string{"hostonlyif", "ipconfig", n.name}
