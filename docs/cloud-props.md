@@ -37,6 +37,7 @@ Schema for `cloud_properties` section:
 * **cpus** [Integer, optional]: Number of CPUs. Example: `1`. Default: `1`.
 * **memory** [Integer, optional]: RAM in megabytes. Example: `1024`. Default: `512`.
 * **ephemeral_disk** [Integer, optional]: Ephemeral disk size in megabytes. Example: `10240`. Default: `5000`.
+* **firmware** [String, optional]: Firmware type from bios, efi, efi32, or efi64. Default: 'efi64'  See['Vbox modifyvm general settins](https://www.virtualbox.org/manual/ch08.html#vboxmanage-modifyvm).
 * **paravirtprovider** [String, optional]: Paravirtual provider type. See [`VBoxManage modifyvm` general settings](https://www.virtualbox.org/manual/ch08.html#vboxmanage-modifyvm) for valid values. Default: `default`.
 * **audio** [String, optional]: Audio type. See [`VBoxManage modifyvm` general settings](https://www.virtualbox.org/manual/ch08.html#vboxmanage-modifyvm) for valid values. Default: `none`.
 

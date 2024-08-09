@@ -16,6 +16,7 @@ type VMProps struct {
 	EphemeralDisk int    `json:"ephemeral_disk"`
 	Audio         string `json:"audio"`
 
+	Firmware   string `json:"firmware"`
 	GUI              bool
 	ParavirtProvider string `json:"paravirtprovider"`
 
@@ -28,6 +29,7 @@ func NewVMProps(props apiv1.VMCloudProps) (VMProps, error) {
 		CPUs:          1,
 		EphemeralDisk: 5000,
 		Audio:         "none",
+		Firmware:   "efi64",
 
 		ParavirtProvider: "default", // Let vboxmanage decide which paravirtprovider to use
 	}
