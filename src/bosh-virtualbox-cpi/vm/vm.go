@@ -52,6 +52,7 @@ func (vm VMImpl) SetProps(props VMProps) error {
 		"--cpus", strconv.Itoa(props.CPUs),
 		"--paravirtprovider", props.ParavirtProvider,
 		"--audio", props.Audio,
+		"--firmware", props.Firmware,
 	)
 	if err != nil {
 		return err
