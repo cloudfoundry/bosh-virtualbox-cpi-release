@@ -5,12 +5,16 @@ result=0
 bin=$(dirname $0)
 
 echo -e "\n Formatting packages..."
-go fmt github.com/cppforlife/bosh-virtualbox-cpi/...
+go fmt bosh-virtualbox-cpi/...
 let "result+=$?"
 
 echo -e "\n Running build script to confirm everything compiles..."
 $bin/build
 $bin/build-linux-amd64
+let "result+=$?"
+
+echo -e "\n Running ginkgo tests..."
+ginkgo -r .
 let "result+=$?"
 
 if [ $result -eq 0 ]; then

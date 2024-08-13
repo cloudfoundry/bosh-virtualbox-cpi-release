@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+(
+    set -x
+    payload='{ "method": "info", "arguments": [], "context": {} }'
+    /var/vcap/jobs/virtualbox_cpi/bin/cpi <<< "${payload}" 2> /dev/null \
+        | python3 -m "json.tool"
+)

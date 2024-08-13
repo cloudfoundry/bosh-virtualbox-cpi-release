@@ -3,8 +3,8 @@ package vm
 // more or less vendored from github.com/johto/iso9660wrap/blob/master/directories.go
 
 import (
-	"time"
 	"fmt"
+	"time"
 )
 
 func WriteDirectoryRecord(w *SectorWriter, identifier string, firstSectorNum uint32) (uint32, error) {
@@ -18,14 +18,14 @@ func WriteDirectoryRecord(w *SectorWriter, identifier string, firstSectorNum uin
 	w.WriteBothEndianDWord(firstSectorNum)
 	w.WriteBothEndianDWord(SectorSize) // directory length
 	writeDirectoryRecordtimestamp(w, time.Now())
-	w.WriteByte(byte(3)) // bitfield; directory
-	w.WriteByte(byte(0)) // file unit size for an interleaved file
-	w.WriteByte(byte(0)) // interleave gap size for an interleaved file
+	w.WriteByte(byte(3))     // bitfield; directory
+	w.WriteByte(byte(0))     // file unit size for an interleaved file
+	w.WriteByte(byte(0))     // interleave gap size for an interleaved file
 	w.WriteBothEndianWord(1) // volume sequence number
 	w.WriteByte(byte(len(identifier)))
 	w.WriteString(identifier)
 	// optional padding to even length
-	if recordLength % 2 == 1 {
+	if recordLength%2 == 1 {
 		recordLength++
 		w.WriteByte(0)
 	}
@@ -39,18 +39,18 @@ func WriteFileRecordHeader(w *SectorWriter, identifier string, firstSectorNum ui
 	recordLength := 33 + len(identifier)
 
 	w.WriteByte(byte(recordLength))
-	w.WriteByte(0) // number of sectors in extended attribute record
+	w.WriteByte(0)                         // number of sectors in extended attribute record
 	w.WriteBothEndianDWord(firstSectorNum) // first sector
 	w.WriteBothEndianDWord(fileSize)
 	writeDirectoryRecordtimestamp(w, time.Now())
-	w.WriteByte(byte(0)) // bitfield; normal file
-	w.WriteByte(byte(0)) // file unit size for an interleaved file
-	w.WriteByte(byte(0)) // interleave gap size for an interleaved file
+	w.WriteByte(byte(0))     // bitfield; normal file
+	w.WriteByte(byte(0))     // file unit size for an interleaved file
+	w.WriteByte(byte(0))     // interleave gap size for an interleaved file
 	w.WriteBothEndianWord(1) // volume sequence number
 	w.WriteByte(byte(len(identifier)))
 	w.WriteString(identifier)
 	// optional padding to even length
-	if recordLength % 2 == 1 {
+	if recordLength%2 == 1 {
 		recordLength++
 		w.WriteByte(0)
 	}

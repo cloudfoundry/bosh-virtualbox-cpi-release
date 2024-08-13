@@ -4,4 +4,4 @@ set -e
 
 bin=$(dirname $0)
 
-go build -o $bin/cpi github.com/cppforlife/bosh-virtualbox-cpi/main
+go build -o $bin/cpi bosh-virtualbox-cpi/main
