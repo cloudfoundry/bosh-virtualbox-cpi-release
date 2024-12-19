@@ -1,0 +1,82 @@
+#!/bin/bash
+
+set -eu
+
+: ${BOSH_ENVIRONMENT:?required}
+: ${BOSH_CA_CERT:?required}
+: ${BOSH_CLIENT:?required}
+: ${BOSH_CLIENT_SECRET:?required}
+
+#
+# stemcell metadata/upload
+#
+
+STEMCELL_CPI=${STEMCELL_CPI:-aws-xen-hvm}
+STEMCELL_OS=${STEMCELL_OS:-"ubuntu-jammy"}
+STEMCELL_VERSION=$(cat stemcell/version)
+
+stemcells_count=$(
+  bosh stemcells --json \
+    | jq --raw-output \
+        --arg "cpi"     "${STEMCELL_CPI}" \
+        --arg "os"      "${STEMCELL_OS}" \
+        --arg "version" "${STEMCELL_VERSION}" \
+        '[ .Tables[0].Rows[]
+              | select(.os == $os
+                  and (.name | contains($cpi))
+                  and .version == $version)
+          ] | length'
+)
+if [[ ${stemcells_count} -gt 0 ]]; then
+  bosh -n upload-stemcell "https://bosh.io/d/stemcells/bosh-${STEMCELL_CPI}-${STEMCELL_OS}-go_agent?v=${STEMCELL_VERSION}"
+fi
+
+#
+# release metadata/upload
+#
+
+cd release
+tar -xzf *.tgz $( tar -tzf *.tgz | grep 'release.MF' )
+release_name=$(bosh int release.MF --path /name)
+release_version=$(bosh int release.MF --path /version)
+
+bosh -n upload-release *.tgz
+cd ../
+
+#
+# compilation deployment
+#
+
+cat > manifest.yml <<EOF
+---
+name: compilation-${release_name}
+releases:
+- name: "${release_name}"
+  version: "${release_version}"
+stemcells:
+- alias: default
+  os: "$STEMCELL_OS"
+  version: "$STEMCELL_VERSION"
+update:
+  canaries: 1
+  max_in_flight: 1
+  canary_watch_time: 1000 - 90000
+  update_watch_time: 1000 - 90000
+instance_groups: []
+EOF
+
+export BOSH_DEPLOYMENT="compilation-${release_name}"
+
+delete_compilation_deployment() {
+	echo "Cleaning up deployment..."
+	bosh -n delete-deployment --force
+}
+trap "echo; echo; echo; sleep 10; delete_compilation_deployment" EXIT SIGINT SIGTERM
+
+
+bosh -n deploy manifest.yml
+bosh    export-release ${release_name}/${release_version} $STEMCELL_OS/$STEMCELL_VERSION
+
+mkdir -p compiled-release/compiled-releases/${release_name}
+mv *.tgz compiled-release/compiled-releases/${release_name}/$( echo *.tgz | sed "s/\.tgz$/-$( date -u +%Y%m%d%H%M%S ).tgz/" )
+sha1sum  compiled-release/compiled-releases/${release_name}/*.tgz

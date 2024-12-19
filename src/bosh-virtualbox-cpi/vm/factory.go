@@ -3,10 +3,10 @@ package vm
 import (
 	"path/filepath"
 
+	apiv1 "github.com/cloudfoundry/bosh-cpi-go/apiv1"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
-	apiv1 "github.com/cloudfoundry/bosh-cpi-go/apiv1"
 
 	bdisk "bosh-virtualbox-cpi/disk"
 	"bosh-virtualbox-cpi/driver"

@@ -1,8 +1,8 @@
 package vm
 
 import (
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	apiv1 "github.com/cloudfoundry/bosh-cpi-go/apiv1"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 func (vm VMImpl) ConfigureAgent(agentEnv apiv1.AgentEnv) error {

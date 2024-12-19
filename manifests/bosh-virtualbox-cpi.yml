@@ -1,0 +1,46 @@
+---
+name: bosh-virtualbox-cpi
+
+instance_groups:
+  - name:      vbox-cpi
+    instances: 1
+    azs:       [ z1 ]
+    jobs:
+
+      - name: virtualbox_cpi
+        release: bosh-virtualbox-cpi
+        properties:
+          agent:
+            mbus: nats://bosh-director.example.org:4222
+          host: vbox-host.example.org
+          private_key: ((vbox_ssh.private_key))
+          username: example-vbox-username
+
+      - name: vbox-cpi-smoke-tests
+        release: bosh-virtualbox-cpi
+
+    stemcell: default
+    vm_type:  default
+    networks: [ name: default ]
+
+variables:
+  - name: vbox_ssh
+    type: ssh
+
+update:
+  serial: true
+  canaries: 1
+  canary_watch_time: 1000-5000
+  max_in_flight: 1
+  update_watch_time: 1000-5000
+
+stemcells:
+  - alias:   default
+    os:      ubuntu-jammy
+    version: latest
+
+releases:
+- name: bosh-virtualbox-cpi
+  version: 0.4.2
+  url: https://bosh.io/d/github.com/cloudfoundry/bosh-virtualbox-cpi-release?v=0.4.2
+  sha1: 5f12883286390406947305aac08541f7f52f1a05

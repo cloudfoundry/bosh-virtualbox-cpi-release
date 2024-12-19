@@ -4,10 +4,10 @@ import (
 	"path/filepath"
 	"strconv"
 
+	apiv1 "github.com/cloudfoundry/bosh-cpi-go/apiv1"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
-	apiv1 "github.com/cloudfoundry/bosh-cpi-go/apiv1"
 
 	"bosh-virtualbox-cpi/driver"
 )
